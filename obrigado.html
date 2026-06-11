@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compra Confirmada — StatPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b12;
+  --bg2: #0e1220;
+  --bg3: #141926;
+  --gold: #f5c542;
+  --gold2: rgba(245,197,66,0.12);
+  --green: #00d4a0;
+  --green2: rgba(0,212,160,0.1);
+  --blue: #4d9fff;
+  --text: #f0f2fa;
+  --muted: #8892b0;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;overflow-x:hidden;}
+
+/* GLOW */
+.glow-1{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(0,212,160,0.05) 0%,transparent 60%);pointer-events:none;}
+.glow-2{position:fixed;bottom:-200px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(245,197,66,0.04) 0%,transparent 60%);pointer-events:none;}
+
+.wrapper{max-width:560px;width:100%;position:relative;z-index:1;}
+
+/* LOGO */
+.logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:40px;}
+.logo-icon{font-size:28px;}
+.logo-name{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--gold);}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
+
+/* CARD PRINCIPAL */
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;text-align:center;position:relative;overflow:hidden;animation:fadeUp 0.6s ease both;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);}
+
+/* ÍCONE DE SUCESSO */
+.success-icon{width:80px;height:80px;background:var(--green2);border:2px solid rgba(0,212,160,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:popIn 0.5s 0.3s both;}
+@keyframes popIn{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
+.success-icon svg{width:36px;height:36px;stroke:var(--green);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+.card-title{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.card-title span{color:var(--green);}
+.card-sub{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:36px;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:36px;text-align:left;}
+.step{display:flex;align-items:flex-start;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.step-num{width:28px;height:28px;min-width:28px;background:var(--gold2);border:1px solid rgba(245,197,66,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);}
+.step-text{flex:1;}
+.step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* BOTÃO */
+.btn-access{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--gold);color:#000;font-size:15px;font-weight:700;padding:16px 32px;border-radius:10px;text-decoration:none;transition:all 0.2s;margin-bottom:20px;}
+.btn-access:hover{background:#e0a820;transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,197,66,0.25);}
+.btn-access svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.5;fill:none;}
+
+/* SUPORTE */
+.suporte{font-size:12px;color:var(--muted);line-height:1.7;}
+.suporte a{color:var(--blue);text-decoration:none;}
+.suporte a:hover{text-decoration:underline;}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:28px 0;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--green2);border:1px solid rgba(0,212,160,0.2);color:var(--green);font-size:11px;font-weight:700;letter-spacing:0.06em;padding:4px 12px;border-radius:999px;margin-bottom:20px;}
+.badge::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+</style>
+</head>
+<body>
+
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<div class="wrapper">
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <div>
+      <div class="logo-name">StatPro</div>
+      <div class="logo-sub">by TargetPro Co.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="badge">● Pagamento confirmado</div>
+
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+
+    <h1 class="card-title">Bem-vindo ao <span>StatPro!</span></h1>
+    <p class="card-sub">Sua assinatura foi ativada com sucesso. Siga os passos abaixo para acessar o sistema.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <div class="step-title">Verifique seu email</div>
+          <div class="step-desc">Você receberá um email com o link para definir sua senha de acesso. Verifique também a caixa de spam.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <div class="step-title">Defina sua senha</div>
+          <div class="step-desc">Clique no link do email e crie uma senha segura para sua conta StatPro.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <div class="step-title">Acesse o sistema</div>
+          <div class="step-desc">Entre em targetproco.com.br/app com seu email e senha e comece a analisar!</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="https://targetproco.com.br/app" class="btn-access">
+      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Acessar o StatPro agora
+    </a>
+
+    <div class="divider"></div>
+
+    <div class="suporte">
+      Dúvidas? Entre em contato: <a href="mailto:targetproco@gmail.com">targetproco@gmail.com</a><br>
+      Seu acesso será liberado em até <strong style="color:var(--text);">5 minutos</strong> após a confirmação do pagamento.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

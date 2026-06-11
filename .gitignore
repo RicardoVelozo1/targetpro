@@ -1,0 +1,10 @@
+# Chave Firebase - NUNCA subir para o GitHub
+*.json
+
+# Node
+node_modules/
+.env
+.env.local
+
+# Netlify
+.netlify/
