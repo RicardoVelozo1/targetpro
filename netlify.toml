@@ -1,6 +1,11 @@
 [build]
-  publish = "targetpro"
+  publish = "."
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/app/*"
+  to = "/app/index.html"
+  status = 200
