@@ -1,0 +1,9 @@
+{
+  "name": "targetpro-site",
+  "version": "1.0.0",
+  "description": "TargetPro Co. — Site institucional e Netlify Functions",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
