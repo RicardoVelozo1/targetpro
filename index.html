@@ -38,6 +38,8 @@ nav{position:sticky;top:0;z-index:100;padding:0 60px;height:68px;display:flex;al
 .nav-links a:hover{color:var(--text);}
 .nav-btn{background:var(--blue);color:#fff;font-size:13px;font-weight:600;padding:8px 20px;border-radius:6px;transition:all 0.2s;}
 .nav-btn:hover{background:#2563eb;}
+.nav-login{font-size:13px;font-weight:600;color:var(--text);padding:8px 4px;border-bottom:1px solid transparent;transition:all 0.2s;}
+.nav-login:hover{border-bottom-color:var(--blue-light);color:var(--blue-light);}
 
 /* ── HERO ── */
 .hero{min-height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 60px 60px;text-align:center;position:relative;overflow:hidden;}
@@ -213,7 +215,10 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
     <a href="#tecnologia">Tecnologia</a>
     <a href="#contato">Contato</a>
   </div>
-  <a href="#planos" class="nav-btn">Ver planos</a>
+  <div style="display:flex;align-items:center;gap:18px;">
+    <a href="/app" class="nav-login">Entrar</a>
+    <a href="#planos" class="nav-btn">Ver planos</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -342,6 +347,7 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
       <div class="eyebrow">StatPro Lotofácil</div>
       <h2 class="heading">Planos para todos os perfis</h2>
       <p class="lead">Escolha o plano ideal e comece a analisar dados com precisão estatística.</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:14px;">Já é cliente? <a href="/app" style="color:var(--blue-light);font-weight:600;">Acesse sua conta →</a></p>
     </div>
     <div class="planos-grid">
       <div class="plano">
