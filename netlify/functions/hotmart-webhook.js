@@ -77,10 +77,11 @@ exports.handler = async (event) => {
   // Validar token Hotmart
   const secret = process.env.HOTMART_SECRET;
   const receivedSecret =
+    event.headers["x-hotmart-hottok"] ||
     event.headers["x-hotmart-webhook-secret"] ||
     event.headers["hottok"];
   if (secret && receivedSecret !== secret) {
-    console.warn("Webhook: token inválido recebido:", receivedSecret);
+    console.warn("Webhook: token inválido recebido:", receivedSecret, "| headers disponíveis:", Object.keys(event.headers || {}));
     return { statusCode: 401, body: "Unauthorized" };
   }
 
