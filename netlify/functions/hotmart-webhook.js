@@ -5,14 +5,33 @@ const { getAuth } = require("firebase-admin/auth");
 function normalizePrivateKey(raw) {
   if (!raw) return raw;
   let key = raw.trim();
+
   // Remove aspas externas, caso tenham sido coladas por engano
   if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
     key = key.slice(1, -1);
   }
+
   // Normaliza quebras de linha estilo Windows
   key = key.replace(/\r\n/g, "\n");
   // Converte sequências literais "\n" (texto) em quebra de linha real
   key = key.replace(/\\n/g, "\n");
+
+  // Se já tem quebras de linha reais, está no formato correto
+  if (key.includes("\n")) return key;
+
+  // Caso a chave tenha sido salva em uma única linha (espaços no lugar de \n),
+  // reconstrói o formato PEM correto a partir do header/footer.
+  const headerMatch = key.match(/-----BEGIN ([A-Z ]+)-----/);
+  const footerMatch = key.match(/-----END ([A-Z ]+)-----/);
+  if (headerMatch && footerMatch) {
+    const header = headerMatch[0];
+    const footer = footerMatch[0];
+    let body = key.replace(header, "").replace(footer, "").trim();
+    body = body.replace(/\s+/g, ""); // remove todos os espaços, deixa só o base64
+    const lines = body.match(/.{1,64}/g) || [];
+    return header + "\n" + lines.join("\n") + "\n" + footer + "\n";
+  }
+
   return key;
 }
 
