@@ -2,12 +2,26 @@ const { initializeApp, cert, getApps } = require("firebase-admin/app");
 const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 
+function normalizePrivateKey(raw) {
+  if (!raw) return raw;
+  let key = raw.trim();
+  // Remove aspas externas, caso tenham sido coladas por engano
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1);
+  }
+  // Normaliza quebras de linha estilo Windows
+  key = key.replace(/\r\n/g, "\n");
+  // Converte sequências literais "\n" (texto) em quebra de linha real
+  key = key.replace(/\\n/g, "\n");
+  return key;
+}
+
 if (!getApps().length) {
   initializeApp({
     credential: cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
     }),
   });
 }
@@ -16,6 +30,26 @@ const db = getFirestore();
 const auth = getAuth();
 
 exports.handler = async (event) => {
+  // Modo de diagnóstico temporário (GET com query ?debug=1) — não expõe a chave, só sua "forma"
+  if (event.httpMethod === "GET" && event.queryStringParameters?.debug === "1") {
+    const raw = process.env.FIREBASE_PRIVATE_KEY || "";
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        length: raw.length,
+        startsWithQuote: raw.startsWith('"'),
+        firstChars: raw.slice(0, 35),
+        lastChars: raw.slice(-35),
+        containsLiteralBackslashN: raw.includes("\\n"),
+        containsRealNewline: raw.includes("\n"),
+        containsCarriageReturn: raw.includes("\r"),
+        hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+        hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+        hasHotmartSecret: !!process.env.HOTMART_SECRET,
+      }),
+    };
+  }
+
   // Apenas POST
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
