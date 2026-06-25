@@ -10,6 +10,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBZ5XqbQDiLSyH6tYaddeFMN5FjUNcdg7E",
@@ -21,8 +22,9 @@
     measurementId: "G-FDS25RLB86"
   };
 
-  const app = initializeApp(firebaseConfig);
+  const app  = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db   = getFirestore(app);
 
   window._auth = auth;
   window._signIn = signInWithEmailAndPassword;
@@ -30,10 +32,64 @@
   window._onAuthStateChanged = onAuthStateChanged;
   window._sendPasswordResetEmail = sendPasswordResetEmail;
 
-  onAuthStateChanged(auth, (user) => {
+  async function verificarAssinatura(user) {
+    try {
+      const ref  = doc(db, "assinaturas", user.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        await signOut(auth);
+        mostrarErroAcesso("Nenhuma assinatura encontrada para este e-mail.");
+        return false;
+      }
+
+      const dados = snap.data();
+
+      if (dados.status !== "ativo") {
+        await signOut(auth);
+        mostrarErroAcesso("Sua assinatura está " + dados.status + ". Entre em contato: targetproco@gmail.com");
+        return false;
+      }
+
+      if (dados.plano !== "vitalicio") {
+        const expiracao = dados.data_expiracao?.toDate();
+        if (expiracao && expiracao < new Date()) {
+          await signOut(auth);
+          mostrarErroAcesso("Sua assinatura expirou em " + expiracao.toLocaleDateString("pt-BR") + ". Renove em targetproco.com.br");
+          return false;
+        }
+      }
+
+      // Assinatura válida — armazenar dados do plano globalmente
+      window._planoAtivo = dados.plano;
+      window._statusAssinatura = dados;
+      return true;
+
+    } catch (err) {
+      console.error("Erro ao verificar assinatura:", err);
+      // Em caso de erro de rede, permite acesso temporário para não prejudicar usuário
+      return true;
+    }
+  }
+
+  function mostrarErroAcesso(mensagem) {
+    const loginScreen = document.getElementById('login-screen');
+    loginScreen.style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+    const errEl = document.getElementById('login-error');
+    if (errEl) {
+      errEl.textContent = mensagem;
+      errEl.style.display = 'block';
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-content').style.display = 'flex';
+      const valido = await verificarAssinatura(user);
+      if (valido) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-content').style.display = 'flex';
+      }
     } else {
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-content').style.display = 'none';

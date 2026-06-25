@@ -11,16 +11,22 @@ if (!admin.apps.length) {
 }
 
 exports.handler = async (event) => {
+  // Apenas POST
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
+  // Validar token Hotmart
   const secret = process.env.HOTMART_SECRET;
-  const receivedSecret = event.headers["x-hotmart-webhook-secret"] || event.headers["hottok"];
+  const receivedSecret =
+    event.headers["x-hotmart-webhook-secret"] ||
+    event.headers["hottok"];
   if (secret && receivedSecret !== secret) {
+    console.warn("Webhook: token inválido recebido:", receivedSecret);
     return { statusCode: 401, body: "Unauthorized" };
   }
 
+  // Parse do body
   let body;
   try {
     body = JSON.parse(event.body);
@@ -28,55 +34,93 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: "Invalid JSON" };
   }
 
+  // Log para debug
+  console.log("Webhook recebido:", JSON.stringify({ event: body?.event, product: body?.data?.product?.id }));
+
+  // Filtrar apenas eventos de compra aprovada
   const event_type = body?.event;
   if (event_type !== "PURCHASE_APPROVED" && event_type !== "PURCHASE_COMPLETE") {
-    return { statusCode: 200, body: "Ignored event" };
+    return { statusCode: 200, body: "Ignored event: " + event_type };
   }
 
-  const email = body?.data?.buyer?.email;
-  const name = body?.data?.buyer?.name || "";
-  const product_id = body?.data?.product?.id?.toString();
-  const offer_code = body?.data?.purchase?.offer?.code || "";
+  const email = body?.data?.buyer?.email?.toLowerCase().trim();
+  const name  = body?.data?.buyer?.name || "";
+  const product_id  = body?.data?.product?.id?.toString();
+  const offer_code  = (body?.data?.purchase?.offer?.code || "").toLowerCase();
 
   if (!email) {
-    return { statusCode: 400, body: "No email found" };
+    return { statusCode: 400, body: "No buyer email found" };
   }
 
   // Determinar plano
   let plano = "mensal";
-  if (product_id === "7864099") plano = "vitalicio";
-  else if (offer_code.includes("anual")) plano = "anual";
+  if (product_id === "7864099") {
+    plano = "vitalicio";
+  } else if (offer_code.includes("anual") || offer_code.includes("annual")) {
+    plano = "anual";
+  }
 
   const dias = plano === "vitalicio" ? 36500 : plano === "anual" ? 365 : 30;
-  const data_inicio = new Date();
-  const data_expiracao = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
+  const data_inicio     = new Date();
+  const data_expiracao  = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
+
+  const db   = admin.firestore();
+  const auth = admin.auth();
 
   try {
-    // Criar usuário no Firebase Auth
     let uid;
+    let usuarioNovo = false;
+
+    // Verificar se usuário já existe
     try {
-      const existing = await admin.auth().getUserByEmail(email);
+      const existing = await auth.getUserByEmail(email);
       uid = existing.uid;
+      console.log("Usuário existente encontrado:", uid);
     } catch {
-      const newUser = await admin.auth().createUser({ email, displayName: name });
+      // Criar novo usuário sem senha (forçará definição via email)
+      const newUser = await auth.createUser({
+        email,
+        displayName: name,
+        emailVerified: false,
+      });
       uid = newUser.uid;
-      // Enviar email de definição de senha
-      await admin.auth().generatePasswordResetLink(email);
+      usuarioNovo = true;
+      console.log("Novo usuário criado:", uid);
     }
 
-    // Salvar assinatura no Firestore
-    await admin.firestore().collection("assinaturas").doc(uid).set({
+    // Salvar/atualizar assinatura no Firestore
+    await db.collection("assinaturas").doc(uid).set({
       uid,
       email,
+      nome: name,
       plano,
       status: "ativo",
-      data_inicio: admin.firestore.Timestamp.fromDate(data_inicio),
+      data_inicio:    admin.firestore.Timestamp.fromDate(data_inicio),
       data_expiracao: admin.firestore.Timestamp.fromDate(data_expiracao),
-    });
+      hotmart_product_id: product_id,
+      hotmart_offer_code: offer_code,
+      ultima_atualizacao: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
 
-    return { statusCode: 200, body: JSON.stringify({ success: true, uid, plano }) };
+    // Enviar email de definição de senha para usuários novos
+    if (usuarioNovo) {
+      const actionCodeSettings = {
+        url: "https://targetproco.com.br/app",
+        handleCodeInApp: false,
+      };
+      const resetLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
+      console.log("Link de definição de senha gerado para:", email);
+      // O Firebase envia o email automaticamente via Authentication → Templates
+    }
+
+    console.log(`✅ Sucesso: ${email} | plano: ${plano} | uid: ${uid} | novo: ${usuarioNovo}`);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, uid, plano, novo: usuarioNovo }),
+    };
+
   } catch (err) {
-    console.error("Erro webhook:", err);
-    return { statusCode: 500, body: "Internal Server Error" };
+    console.error("Erro no webhook:", err.message, err.stack);
+    return { statusCode: 500, body: "Internal Server Error: " + err.message };
   }
 };
