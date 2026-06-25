@@ -1,14 +1,19 @@
-const admin = require("firebase-admin");
+const { initializeApp, cert, getApps } = require("firebase-admin/app");
+const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
 }
+
+const db = getFirestore();
+const auth = getAuth();
 
 exports.handler = async (event) => {
   // Apenas POST
@@ -64,9 +69,6 @@ exports.handler = async (event) => {
   const data_inicio     = new Date();
   const data_expiracao  = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
 
-  const db   = admin.firestore();
-  const auth = admin.auth();
-
   try {
     let uid;
     let usuarioNovo = false;
@@ -95,11 +97,11 @@ exports.handler = async (event) => {
       nome: name,
       plano,
       status: "ativo",
-      data_inicio:    admin.firestore.Timestamp.fromDate(data_inicio),
-      data_expiracao: admin.firestore.Timestamp.fromDate(data_expiracao),
+      data_inicio:    Timestamp.fromDate(data_inicio),
+      data_expiracao: Timestamp.fromDate(data_expiracao),
       hotmart_product_id: product_id,
       hotmart_offer_code: offer_code,
-      ultima_atualizacao: admin.firestore.FieldValue.serverTimestamp(),
+      ultima_atualizacao: FieldValue.serverTimestamp(),
     }, { merge: true });
 
     // Enviar email de definição de senha para usuários novos
@@ -108,7 +110,7 @@ exports.handler = async (event) => {
         url: "https://targetproco.com.br/app",
         handleCodeInApp: false,
       };
-      const resetLink = await auth.generatePasswordResetLink(email, actionCodeSettings);
+      await auth.generatePasswordResetLink(email, actionCodeSettings);
       console.log("Link de definição de senha gerado para:", email);
       // O Firebase envia o email automaticamente via Authentication → Templates
     }
