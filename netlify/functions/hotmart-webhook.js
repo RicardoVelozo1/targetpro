@@ -2,6 +2,67 @@ const { initializeApp, cert, getApps } = require("firebase-admin/app");
 const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 
+const RESEND_API_URL = "https://api.resend.com/emails";
+const EMAIL_REMETENTE = "TargetPro Co. <acesso@mail.targetproco.com.br>";
+
+async function enviarEmailDefinicaoSenha(destinatario, nomeCliente, linkSenha) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("RESEND_API_KEY não configurada — email não enviado.");
+    return { ok: false, motivo: "RESEND_API_KEY ausente" };
+  }
+
+  const primeiroNome = (nomeCliente || "").split(" ")[0] || "";
+
+  const html = `
+  <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #1f2937;">
+    <div style="text-align:center; margin-bottom: 24px;">
+      <span style="font-size: 22px; font-weight: bold; color: #3b82f6;">Target<span style="color:#f59e0b;">Pro</span></span>
+    </div>
+    <h2 style="color:#111827; font-size: 20px;">Bem-vindo(a)${primeiroNome ? ", " + primeiroNome : ""}!</h2>
+    <p style="font-size: 15px; line-height: 1.6;">
+      Sua compra do <strong>StatPro — Analisador de Dados Estatísticos</strong> foi confirmada com sucesso.
+      Para acessar a plataforma, crie sua senha clicando no botão abaixo:
+    </p>
+    <div style="text-align:center; margin: 32px 0;">
+      <a href="${linkSenha}" style="background:#f59e0b; color:#111827; text-decoration:none; font-weight:bold; padding: 14px 28px; border-radius: 8px; display:inline-block; font-size: 15px;">
+        Criar minha senha
+      </a>
+    </div>
+    <p style="font-size: 13px; color:#6b7280; line-height: 1.6;">
+      Se o botão não funcionar, copie e cole este link no seu navegador:<br>
+      <a href="${linkSenha}" style="color:#3b82f6; word-break: break-all;">${linkSenha}</a>
+    </p>
+    <hr style="border:none; border-top:1px solid #e5e7eb; margin: 24px 0;">
+    <p style="font-size: 12px; color:#9ca3af; text-align:center;">
+      TargetPro Co. — Analytics & Solutions<br>
+      Este é um email automático, não é necessário responder.
+    </p>
+  </div>`;
+
+  const resp = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: EMAIL_REMETENTE,
+      to: [destinatario],
+      subject: "Defina sua senha de acesso ao StatPro",
+      html,
+    }),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    console.error("Resend: falha ao enviar email:", resp.status, JSON.stringify(data));
+    return { ok: false, motivo: data };
+  }
+  console.log("Resend: email enviado com sucesso, id:", data.id);
+  return { ok: true, id: data.id };
+}
+
 function normalizePrivateKey(raw) {
   if (!raw) return raw;
   let key = raw.trim();
@@ -164,9 +225,13 @@ exports.handler = async (event) => {
         url: "https://targetproco.com.br/app",
         handleCodeInApp: false,
       };
-      await auth.generatePasswordResetLink(email, actionCodeSettings);
+      const linkSenha = await auth.generatePasswordResetLink(email, actionCodeSettings);
       console.log("Link de definição de senha gerado para:", email);
-      // O Firebase envia o email automaticamente via Authentication → Templates
+
+      const envio = await enviarEmailDefinicaoSenha(email, name, linkSenha);
+      if (!envio.ok) {
+        console.error("⚠️ Usuário criado, mas o email de definição de senha falhou:", envio.motivo);
+      }
     }
 
     console.log(`✅ Sucesso: ${email} | plano: ${plano} | uid: ${uid} | novo: ${usuarioNovo}`);
