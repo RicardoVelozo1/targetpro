@@ -6,6 +6,21 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/app/manifest.json"
+  to = "/app/manifest.json"
+  status = 200
+
+[[redirects]]
+  from = "/app/sw.js"
+  to = "/app/sw.js"
+  status = 200
+
+[[redirects]]
+  from = "/app/icons/*"
+  to = "/app/icons/:splat"
+  status = 200
+
+[[redirects]]
   from = "/app/*"
   to = "/app/index.html"
   status = 200
