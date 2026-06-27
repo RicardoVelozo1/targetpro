@@ -636,6 +636,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           </div>
         </div>
         <div id="sugestao-wrap"></div>
+
+        <div style="display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap;">
+          <button class="btn btn-gold" id="step4-btn-avancar" onclick="hojeStep(5)" disabled>Continuar → Confirmar Jogos ✓</button>
+          <span id="step4-contador" style="font-size:13px;color:var(--muted);">Selecione ao menos 1 jogo, ou salve uma estratégia inteira acima.</span>
+        </div>
       </div>
 
       <!-- Step 5: Meus Jogos -->
@@ -978,6 +983,7 @@ let generatedGames = [];
 let lastGenerated = null;
 let sugestoesGeradas = [];
 let editingState = { si: -1, ji: -1 };
+let jogosSelecionadosStep4 = []; // {si, ji, strat, nums} — seleção feita já no Step 4
 let novoResultadoPendente = null;
 let histFiltered = [...RESULTADOS];
 let jogoIA = null;
@@ -1409,8 +1415,10 @@ function gerarSugestoes() {
   ];
 
   sugestoesGeradas = STRATS.map(s => ({ ...s, qty:1, jogos:[s.fn()] }));
+  jogosSelecionadosStep4 = [];
   document.getElementById('prox-concurso-label').textContent = `Concurso ${ult.c + 1}`;
   renderSugestoes();
+  atualizarContadorStep4();
 }
 
 function renderSugestoes() {
@@ -1445,7 +1453,13 @@ function renderJogosHtml(jogos, si) {
     const avgScore = Math.round(nums.reduce((a,n)=>a+calcScore(n),0)/nums.length);
     const editing = (editingState.si===si && editingState.ji===ji);
     const scoreCls = avgScore >= 70 ? 'score-high' : avgScore >= 45 ? 'score-mid' : 'score-low';
-    return `<div class="jogo-card" id="jogo-${si}-${ji}">
+    const sel = jogosSelecionadosStep4.some(j=>j.si===si && j.ji===ji);
+    const borderColor = sel ? 'rgba(0,212,160,0.4)' : 'var(--border)';
+    const btnSelLabel = sel ? '✓ Selecionado' : '+ Jogar este';
+    const btnSelStyle = sel
+      ? 'background:var(--green2);color:var(--green);border:1px solid rgba(0,212,160,0.3);'
+      : 'background:var(--gold3);color:var(--gold);border:1px solid rgba(245,197,66,0.3);';
+    return `<div class="jogo-card" id="jogo-${si}-${ji}" style="border:1px solid ${borderColor};">
       <div class="jogo-card-header">
         <span style="font-size:12px;color:var(--muted);">Jogo ${ji+1}</span>
         <div class="${scoreCls}" style="width:42px;height:42px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;border:1px solid currentColor;">${avgScore}%</div>
@@ -1457,6 +1471,7 @@ function renderJogosHtml(jogos, si) {
         <span>Ímpares: <strong>${15-p}</strong></span>
       </div>
       <div class="jogo-btns">
+        <button class="btn btn-sm" style="${btnSelStyle}" onclick="toggleSelecionarJogo(${si},${ji})">${btnSelLabel}</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleEditJogo(${si},${ji})">${editing?'✓ Fechar':'✏ Editar'}</button>
         <button class="btn btn-ghost btn-sm" onclick="regerarJogo(${si},${ji})">↺</button>
       </div>
@@ -1514,11 +1529,48 @@ function salvarEstrategia(si) {
   salvarJogos(s.jogos, s.nome.replace(/[^\w\sçãéêôàáíó]/gi,'').trim());
 }
 
+// ========== SELEÇÃO INDIVIDUAL DE JOGOS NO STEP 4 ==========
+
+function toggleSelecionarJogo(si, ji) {
+  const idx = jogosSelecionadosStep4.findIndex(j=>j.si===si && j.ji===ji);
+  if (idx >= 0) {
+    jogosSelecionadosStep4.splice(idx, 1);
+  } else {
+    const s = sugestoesGeradas[si];
+    jogosSelecionadosStep4.push({
+      si, ji,
+      strat: s.nome.replace(/[^\w\sçãéêôàáíó]/gi,'').trim(),
+      nums: [...s.jogos[ji]]
+    });
+  }
+  document.getElementById(`strat-games-${si}`).innerHTML = renderJogosHtml(sugestoesGeradas[si].jogos, si);
+  atualizarContadorStep4();
+}
+
+function atualizarContadorStep4() {
+  const qtd = jogosSelecionadosStep4.length;
+  const el = document.getElementById('step4-contador');
+  if (el) {
+    el.textContent = qtd > 0 ? `${qtd} jogo(s) selecionado(s)` : 'Selecione ao menos 1 jogo, ou salve uma estratégia inteira acima.';
+    el.style.color = qtd > 0 ? 'var(--green)' : 'var(--muted)';
+  }
+  const btnAvancar = document.getElementById('step4-btn-avancar');
+  if (btnAvancar) btnAvancar.disabled = qtd === 0;
+}
+
 
 // ========== STEP 5 — MEUS JOGOS ==========
 let jogosSessao = []; // {strat, nums, selecionado}
 
 function coletarJogosSessao() {
+  if (jogosSelecionadosStep4.length > 0) {
+    // Usa os jogos que o usuário já escolheu manualmente no Step 4
+    jogosSessao = jogosSelecionadosStep4
+      .filter(j => j.nums.length === 15)
+      .map(j => ({ strat: j.strat, nums: j.nums, selecionado: true }));
+    return;
+  }
+  // Fallback: nenhuma seleção feita no Step 4 — comportamento antigo (pega tudo, escolhe aqui)
   jogosSessao = [];
   sugestoesGeradas.forEach(s => {
     s.jogos.forEach(nums => {
