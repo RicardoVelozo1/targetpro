@@ -86,8 +86,11 @@
 
     } catch (err) {
       console.error("Erro ao verificar assinatura:", err);
-      // Em caso de erro de rede, permite acesso temporário para não prejudicar usuário
-      return true;
+      // Por segurança, bloqueia o acesso se não for possível confirmar a assinatura
+      // (ex: falha de rede). Evita uso indevido após cancelamento/expiração offline.
+      await signOut(auth);
+      mostrarErroAcesso("Não foi possível confirmar sua assinatura. Verifique sua conexão com a internet e tente novamente.");
+      return false;
     }
   }
 
@@ -108,12 +111,20 @@
       if (valido) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-content').style.display = 'flex';
+        const badge = document.getElementById('user-email-badge');
+        if (badge) badge.textContent = user.email;
       }
     } else {
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-content').style.display = 'none';
     }
   });
+
+  window.confirmarLogout = function() {
+    if (confirm("Deseja realmente sair do StatPro?")) {
+      signOut(auth);
+    }
+  };
 </script>
 
 <style>
@@ -523,6 +534,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     </nav>
 
     <div class="sidebar-footer">
+      <div id="user-email-badge" style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px;word-break:break-all;padding:0 4px;"></div>
+      <button class="btn btn-sm btn-full" style="margin-bottom:10px;" onclick="confirmarLogout()">⏻ Sair</button>
       <div class="ver-badge">v6.0.0 — StatPro Lotofácil</div>
     </div>
   </aside>
