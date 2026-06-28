@@ -55,9 +55,14 @@ async function enviarEmailVitalicio(destinatario, nomeCliente, linkSenha) {
       </a>
     </div>
     <p style="font-size: 13px; color:#6b7280; line-height: 1.6;">
-      Após instalar, abra o programa e faça login com o mesmo email e senha da sua conta.<br>
+      ${linkSenha ? "Antes de abrir o programa, crie sua senha clicando no botão acima. Depois, use o mesmo email e senha para fazer login no programa desktop." : "Após instalar, abra o programa e faça login com o mesmo email e senha da sua conta no site."}<br>
       Requisitos: Windows 10 ou 11, 64-bit.
     </p>
+    <div style="background:#FEF3C7; border-left:4px solid #D97706; border-radius:6px; padding:14px 16px; margin: 20px 0;">
+      <p style="font-size: 13px; color:#92400e; line-height: 1.6; margin:0;">
+        <strong>⚠️ Aviso esperado do Windows ao instalar:</strong> o Windows pode mostrar a tela <em>“O Windows protegeu o computador”</em>, dizendo que o aplicativo não é reconhecido. Isso é normal para programas novos e não significa vírus. Para continuar, clique em <strong>“Mais informações”</strong> e depois em <strong>“Executar assim mesmo”</strong>.
+      </p>
+    </div>
     <hr style="border:none; border-top:1px solid #e5e7eb; margin: 24px 0;">
     <p style="font-size: 12px; color:#9ca3af; text-align:center;">
       TargetPro Co. — Analytics &amp; Solutions<br>
