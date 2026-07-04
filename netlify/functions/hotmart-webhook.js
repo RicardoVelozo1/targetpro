@@ -294,6 +294,22 @@ exports.handler = async (event) => {
       console.log("Novo usuário criado:", uid);
     }
 
+    // Proteção anti-downgrade: verificar se o cliente já tem um plano superior
+    // Uma renovação automática de plano Mensal não deve sobrescrever um plano Vitalício
+    const HIERARQUIA = { "vitalicio": 3, "anual": 2, "mensal": 1 };
+    const docAtual = await db.collection("assinaturas").doc(uid).get();
+    if (docAtual.exists) {
+      const planoAtual = docAtual.data()?.plano;
+      const statusAtual = docAtual.data()?.status;
+      if (statusAtual === "ativo" && (HIERARQUIA[planoAtual] || 0) > (HIERARQUIA[plano] || 0)) {
+        console.log(`⚠️ Downgrade bloqueado: ${email} tem plano '${planoAtual}' (superior) — renovação de '${plano}' ignorada.`);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ success: true, msg: "Downgrade bloqueado — plano superior mantido.", planoAtual, planoIgnorado: plano }),
+        };
+      }
+    }
+
     // Salvar/atualizar assinatura no Firestore
     await db.collection("assinaturas").doc(uid).set({
       uid,
