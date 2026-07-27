@@ -296,13 +296,25 @@ exports.handler = async (event) => {
 
     // Proteção anti-downgrade: verificar se o cliente já tem um plano superior
     // Uma renovação automática de plano Mensal não deve sobrescrever um plano Vitalício
+    // Normaliza (minúsculo, sem acento, sem espaços nas pontas) para que a comparação
+    // nunca falhe silenciosamente por causa de variação de formatação no dado salvo.
+    const normalizarPlano = (p) =>
+      (p || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, ""); // remove acentos
+
     const HIERARQUIA = { "vitalicio": 3, "anual": 2, "mensal": 1 };
     const docAtual = await db.collection("assinaturas").doc(uid).get();
     if (docAtual.exists) {
       const planoAtual = docAtual.data()?.plano;
       const statusAtual = docAtual.data()?.status;
-      if (statusAtual === "ativo" && (HIERARQUIA[planoAtual] || 0) > (HIERARQUIA[plano] || 0)) {
-        console.log(`⚠️ Downgrade bloqueado: ${email} tem plano '${planoAtual}' (superior) — renovação de '${plano}' ignorada.`);
+      const nivelAtual = HIERARQUIA[normalizarPlano(planoAtual)] || 0;
+      const nivelNovo = HIERARQUIA[normalizarPlano(plano)] || 0;
+      if (statusAtual === "ativo" && nivelAtual > nivelNovo) {
+        console.log(`⚠️ Downgrade bloqueado: ${email} tem plano '${planoAtual}' (nível ${nivelAtual}) — renovação de '${plano}' (nível ${nivelNovo}) ignorada.`);
         return {
           statusCode: 200,
           body: JSON.stringify({ success: true, msg: "Downgrade bloqueado — plano superior mantido.", planoAtual, planoIgnorado: plano }),
