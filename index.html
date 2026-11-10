@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TargetPro Co. — Analytics & Solutions</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 500 500%27%3E%3Ccircle cx=%27250%27 cy=%27250%27 r=%27226%27 fill=%27none%27 stroke=%27%232F7BFF%27 stroke-width=%2748%27/%3E%3Ccircle cx=%27250%27 cy=%27250%27 r=%27136%27 fill=%27none%27 stroke=%27%23F5B731%27 stroke-width=%2748%27/%3E%3Ccircle cx=%27250%27 cy=%27250%27 r=%2758%27 fill=%27%23F5B731%27/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#06080f;
@@ -30,9 +31,9 @@ nav{position:sticky;top:0;z-index:100;padding:0 60px;height:68px;display:flex;al
 .logo{display:flex;align-items:center;gap:10px;}
 .logo-mark{width:34px;height:34px;position:relative;}
 .logo-mark svg{width:34px;height:34px;}
-.logo-name{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.01em;}
+.logo-name{font-family:'Poppins','Inter',sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.01em;color:#F1F5F9;}
 .logo-name span{color:var(--blue-light);}
-.logo-name em{color:var(--gold);font-style:normal;font-size:12px;font-weight:500;margin-left:2px;}
+.logo-name em{color:#F5B731;font-style:normal;font-size:17px;font-weight:700;margin-left:2px;}
 .nav-links{display:flex;align-items:center;gap:32px;}
 .nav-links a{font-size:13px;font-weight:500;color:var(--muted);transition:color 0.2s;}
 .nav-links a:hover{color:var(--text);}
@@ -166,8 +167,8 @@ select.input option{background:var(--bg2);}
 /* ── FOOTER ── */
 footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;max-width:1080px;margin:0 auto 32px;}
-.footer-brand{font-size:16px;font-weight:700;margin-bottom:10px;}
-.footer-brand span{color:var(--blue-light);}
+.footer-brand{font-family:'Poppins','Inter',sans-serif;font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.footer-brand span{color:inherit;}
 .footer-brand em{color:var(--gold);font-style:normal;}
 .footer-desc{font-size:12px;color:var(--muted);line-height:1.8;max-width:260px;}
 .footer-col-title{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;}
@@ -195,19 +196,13 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
 <nav>
   <div class="logo">
     <div class="logo-mark">
-      <svg viewBox="0 0 34 34" fill="none">
-        <circle cx="17" cy="17" r="16" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-        <circle cx="17" cy="17" r="11" stroke="#3b82f6" stroke-width="1" opacity="0.5"/>
-        <circle cx="17" cy="17" r="6" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="1.2"/>
-        <circle cx="17" cy="17" r="3" fill="#3b82f6"/>
-        <line x1="1" y1="17" x2="10" y2="17" stroke="#3b82f6" stroke-width="1" opacity="0.5"/>
-        <line x1="24" y1="17" x2="33" y2="17" stroke="#3b82f6" stroke-width="1" opacity="0.5"/>
-        <line x1="17" y1="1" x2="17" y2="10" stroke="#3b82f6" stroke-width="1" opacity="0.5"/>
-        <line x1="17" y1="24" x2="17" y2="33" stroke="#3b82f6" stroke-width="1" opacity="0.5"/>
-        <text x="17" y="20" font-family="Arial" font-size="5" font-weight="bold" fill="white" text-anchor="middle">$</text>
+      <svg viewBox="0 0 500 500" fill="none" aria-label="TargetPro Co.">
+        <circle cx="250" cy="250" r="226" stroke="#2F7BFF" stroke-width="40"/>
+        <circle cx="250" cy="250" r="140" stroke="#F5B731" stroke-width="40"/>
+        <circle cx="250" cy="250" r="56" fill="#F5B731"/>
       </svg>
     </div>
-    <div class="logo-name"><span>Target</span>Pro <em>Co.</em></div>
+    <div class="logo-name">TargetPro <em>Co.</em></div>
   </div>
   <div class="nav-links">
     <a href="#sobre">Sobre</a>
@@ -259,20 +254,10 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
         </div>
       </div>
       <div class="sobre-visual">
-        <svg viewBox="0 0 260 260" width="340" height="340" fill="none">
-          <circle cx="130" cy="130" r="120" stroke="#3b82f6" stroke-width="0.8" opacity="0.1"/>
-          <circle cx="130" cy="130" r="92" stroke="#3b82f6" stroke-width="0.8" opacity="0.15"/>
-          <circle cx="130" cy="130" r="66" fill="rgba(59,130,246,0.04)" stroke="#3b82f6" stroke-width="1.2" opacity="0.3"/>
-          <circle cx="130" cy="130" r="42" fill="rgba(59,130,246,0.06)" stroke="#3b82f6" stroke-width="1.5" opacity="0.5"/>
-          <circle cx="130" cy="130" r="20" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" stroke-width="2" opacity="0.8"/>
-          <circle cx="130" cy="130" r="8" fill="#3b82f6"/>
-          <text x="130" y="134" font-family="Arial" font-size="9" font-weight="bold" fill="white" text-anchor="middle">$</text>
-          <line x1="10" y1="130" x2="107" y2="130" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-          <line x1="153" y1="130" x2="250" y2="130" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-          <line x1="130" y1="10" x2="130" y2="107" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-          <line x1="130" y1="153" x2="130" y2="250" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
-          <text x="130" y="52" font-family="Georgia" font-size="10" font-weight="bold" fill="#3b82f6" text-anchor="middle" opacity="0.6">TARGET</text>
-          <text x="130" y="218" font-family="Georgia" font-size="10" font-weight="bold" fill="#f59e0b" text-anchor="middle" opacity="0.6">PRO Co.</text>
+        <svg viewBox="0 -20 500 500" width="340" height="340" fill="none" aria-label="TargetPro Co.">
+          <circle cx="250" cy="230" r="226" stroke="#2F7BFF" stroke-width="28"/>
+          <circle cx="250" cy="230" r="140" stroke="#F5B731" stroke-width="28"/>
+          <circle cx="250" cy="230" r="54" fill="#F5B731"/>
         </svg>
       </div>
     </div>
@@ -496,7 +481,7 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand"><span>Target</span>Pro <em>Co.</em></div>
+      <div class="footer-brand"><svg viewBox="0 0 500 500" width="22" height="22" fill="none" aria-hidden="true"><circle cx="250" cy="250" r="226" stroke="#2F7BFF" stroke-width="44"/><circle cx="250" cy="250" r="138" stroke="#F5B731" stroke-width="44"/><circle cx="250" cy="250" r="58" fill="#F5B731"/></svg>TargetPro <em>Co.</em></div>
       <p class="footer-desc">Empresa brasileira especializada no desenvolvimento de softwares de análise estatística avançada. Analytics & Solutions.</p>
     </div>
     <div>
