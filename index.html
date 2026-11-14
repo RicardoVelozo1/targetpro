@@ -8,17 +8,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#06080f;
-  --bg2:#0b0f1a;
-  --bg3:#101520;
-  --blue:#3b82f6;
-  --blue-light:#60a5fa;
-  --gold:#f59e0b;
-  --gold-light:#fbbf24;
-  --text:#f1f5f9;
-  --muted:#94a3b8;
-  --border:rgba(59,130,246,0.12);
-  --border2:rgba(255,255,255,0.06);
+  --bg:#ffffff;
+  --bg2:#F2F6FF;
+  --bg3:#ffffff;
+  --blue:#2F7BFF;
+  --blue-dark:#1A4FD6;
+  --blue-light:#1E5BFF;
+  --navy:#0A2463;
+  --gold:#F5B731;
+  --gold-light:#F5B731;
+  --text:#0B1B3F;
+  --muted:#4A5873;
+  --border:rgba(47,123,255,0.18);
+  --border2:rgba(11,27,63,0.10);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -189,6 +191,98 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
   .hero-metrics{gap:24px;}
   footer{padding:40px 20px 24px;}
 }
+
+/* ════ TEMA VIBRANTE (nov/2026) ════ */
+nav{background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border2);box-shadow:0 2px 14px rgba(10,36,99,0.06);}
+.logo-name{color:var(--navy);}
+.logo-name em{color:#E0A100;}
+.nav-links a{color:var(--muted);font-weight:600;}
+.nav-links a:hover{color:var(--blue);}
+.nav-login{font-size:13px;font-weight:600;color:var(--blue-dark);}
+.nav-btn{background:linear-gradient(135deg,#2F7BFF,#1A4FD6);box-shadow:0 6px 16px rgba(47,123,255,0.35);}
+
+.hero{background:radial-gradient(1200px 600px at 20% 0%,#3D8BFF 0%,transparent 60%),linear-gradient(160deg,#1E5BFF 0%,#1240B8 55%,#0A2463 100%);color:#fff;min-height:88vh;}
+.hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.07) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(circle at 50% 40%,#000 30%,transparent 75%);mask-image:radial-gradient(circle at 50% 40%,#000 30%,transparent 75%);pointer-events:none;}
+.hero > *{position:relative;}
+.hero-glow-1,.hero-glow-2{display:none;}
+.hero > .hero-rings{position:absolute;right:-120px;top:50%;transform:translateY(-50%);width:520px;height:520px;opacity:0.16;pointer-events:none;}
+.hero-eyebrow{background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);color:#fff;}
+.hero-eyebrow::before{background:#F5B731;}
+.hero h1{color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.18);}
+.hero h1 .blue{color:#BFD8FF;}
+.hero h1 .gold{color:#FFC93C;}
+.hero-sub{color:rgba(255,255,255,0.92);font-size:17px;}
+.hero .btn-primary{background:#F5B731;color:#0A2463;font-weight:700;box-shadow:0 10px 26px rgba(245,183,49,0.45);}
+.hero .btn-primary:hover{background:#FFC93C;}
+.hero .btn-secondary{color:#fff;border:1px solid rgba(255,255,255,0.5);}
+.hero .btn-secondary:hover{background:rgba(255,255,255,0.12);}
+.hero-metrics{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:16px;padding:20px 36px;backdrop-filter:blur(6px);}
+.metric-val{color:#FFC93C;}
+.metric-label{color:rgba(255,255,255,0.88);}
+
+.btn-primary{background:linear-gradient(135deg,#2F7BFF,#1A4FD6);box-shadow:0 8px 20px rgba(47,123,255,0.3);}
+.btn-primary:hover{background:linear-gradient(135deg,#3D8BFF,#2F7BFF);}
+.eyebrow{color:var(--blue);}
+.heading{color:var(--navy);}
+.heading .accent{color:var(--blue);}
+.divider{display:none;}
+.sobre-bg{background:var(--bg2);}
+.valor,.produto,.tech-card,.contato-item,.garantia-box{background:#fff;border:1px solid var(--border2);box-shadow:0 6px 22px rgba(10,36,99,0.07);}
+.produto:hover,.tech-card:hover{border-color:var(--blue);box-shadow:0 14px 34px rgba(47,123,255,0.18);}
+.produto.coming{opacity:0.7;}
+.status-live{background:#E6F9EE;color:#0F8A43;border:1px solid #9BE3B9;}
+.produto-feats li::before{color:var(--blue);}
+.produto-preco strong{color:var(--blue-dark);}
+.tech-icon,.contato-icon{background:linear-gradient(135deg,#E3EDFF,#FFF4D6);}
+
+/* planos */
+.planos-bg{background:linear-gradient(160deg,#1E5BFF 0%,#1240B8 60%,#0A2463 100%);position:relative;}
+.planos-bg .eyebrow{color:#FFC93C;}
+.planos-bg .heading{color:#fff;}
+.planos-bg .text-center .lead,.planos-bg .text-center p{color:rgba(255,255,255,0.92)!important;}
+.planos-bg .text-center a{color:#FFC93C!important;}
+.planos-grid{grid-template-columns:repeat(4,1fr);gap:18px;align-items:stretch;}
+.plano{background:#fff;border:none;box-shadow:0 16px 40px rgba(0,0,0,0.22);color:var(--text);display:flex;flex-direction:column;}
+.plano .btn-plano{margin-top:auto;}
+.plano.featured{outline:3px solid #F5B731;transform:translateY(-8px);box-shadow:0 24px 50px rgba(0,0,0,0.3);}
+.plano-badge{background:#F5B731;color:#0A2463;font-size:11px;}
+.plano-name{color:var(--blue);}
+.plano-price{color:var(--navy);}
+.plano-price sup{color:var(--muted);}
+.plano-old{font-size:13px;color:var(--muted);text-decoration:line-through;margin-bottom:2px;min-height:20px;}
+.plano-period{color:var(--muted);margin-bottom:10px;}
+.plano-save{display:inline-block;background:#E6F9EE;color:#0F8A43;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;margin-bottom:14px;}
+.plano-feats li{color:var(--text);}
+.plano-feats li::before{color:var(--blue);}
+.plano.featured .plano-feats li::before{color:#E0A100;}
+.btn-azul{background:linear-gradient(135deg,#2F7BFF,#1A4FD6);color:#fff;}
+.btn-ouro{background:#F5B731;color:#0A2463;font-weight:700;}
+.btn-ouro:hover{background:#FFC93C;}
+.btn-outline{border:1.5px solid var(--blue);color:var(--blue-dark);}
+.btn-outline:hover{background:#EEF4FF;}
+.plano-disclaimer{color:rgba(255,255,255,0.85);}
+.vagas{font-size:12px;font-weight:700;color:#C2410C;margin:0 0 14px;}
+.acesso-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:36px auto 0;max-width:900px;}
+.acesso-step{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);border-radius:12px;padding:16px 18px;color:#fff;display:flex;gap:12px;align-items:center;font-size:13px;line-height:1.5;}
+.acesso-step b{display:block;font-size:14px;}
+.acesso-num{width:34px;height:34px;border-radius:50%;background:#F5B731;color:#0A2463;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+.garantia-bg{background:var(--bg2);}
+.input{background:#fff;}
+.cta{background:linear-gradient(135deg,#F5B731 0%,#FFC93C 100%);color:#0A2463;}
+.cta h2{color:#0A2463;}
+.cta h2 span{color:#1A4FD6!important;}
+.cta p{color:#3D3410;}
+.cta .btn-primary{background:#0A2463;box-shadow:0 10px 24px rgba(10,36,99,0.35);}
+footer{background:#0A2463;color:#fff;border-top:none;}
+footer .footer-desc,footer .footer-col-links a,footer .footer-bottom p{color:rgba(255,255,255,0.75);}
+footer .footer-col-title{color:#fff;}
+footer .footer-bottom{border-top:1px solid rgba(255,255,255,0.15);}
+footer .footer-brand em{color:#F5B731;}
+@media(max-width:1100px){.planos-grid{grid-template-columns:repeat(2,1fr);}.plano.featured{transform:none;}}
+@media(max-width:900px){.planos-grid,.acesso-steps{grid-template-columns:1fr;}.hero > .hero-rings{display:none;}.hero-metrics{padding:16px;}}
+.plano-trial{display:inline-block;background:#FFF4D6;color:#8A5A00;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:14px;}
+.trial-nota{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -220,12 +314,13 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
 <section class="hero">
   <div class="hero-glow-1"></div>
   <div class="hero-glow-2"></div>
+  <svg class="hero-rings" viewBox="0 0 500 500" fill="none" aria-hidden="true"><circle cx="250" cy="250" r="226" stroke="#fff" stroke-width="40"/><circle cx="250" cy="250" r="140" stroke="#F5B731" stroke-width="40"/><circle cx="250" cy="250" r="56" fill="#F5B731"/></svg>
   <div class="hero-eyebrow">🎯 Analytics & Solutions</div>
   <h1>Transformamos dados em<br><span class="blue">decisões precisas</span> e<br><span class="gold">resultados reais</span></h1>
-  <p class="hero-sub">A TargetPro Co. desenvolve softwares de análise estatística avançada. Ferramentas inteligentes, interface elegante, dados que guiam suas escolhas.</p>
+  <p class="hero-sub">A TargetPro Co. desenvolve softwares de análise estatística avançada. Ferramentas inteligentes, 100% online: acesse do celular ou do computador, sem instalar nada.</p>
   <div class="hero-actions">
-    <a href="#produtos" class="btn-primary">Conhecer produtos →</a>
-    <a href="#sobre" class="btn-secondary">Sobre a empresa</a>
+    <a href="#planos" class="btn-primary">Teste grátis por 7 dias →</a>
+    <a href="#produtos" class="btn-secondary">Conhecer produtos</a>
   </div>
   <div class="hero-metrics">
     <div class="metric"><div class="metric-val">600+</div><div class="metric-label">Concursos analisados</div></div>
@@ -249,7 +344,7 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
         <div class="sobre-valores">
           <div class="valor"><div class="valor-icon">🎯</div><div class="valor-title">Precisão</div><div class="valor-text">Algoritmos validados com dados históricos reais.</div></div>
           <div class="valor"><div class="valor-icon">⚡</div><div class="valor-title">Velocidade</div><div class="valor-text">Análises em tempo real com atualização automática.</div></div>
-          <div class="valor"><div class="valor-icon">🔒</div><div class="valor-title">Privacidade</div><div class="valor-text">Seus dados ficam no seu dispositivo.</div></div>
+          <div class="valor"><div class="valor-icon">🔒</div><div class="valor-title">Segurança</div><div class="valor-text">Login individual e conexão protegida.</div></div>
           <div class="valor"><div class="valor-icon">💡</div><div class="valor-title">Inovação</div><div class="valor-text">IA aplicada à análise preditiva de padrões.</div></div>
         </div>
       </div>
@@ -286,9 +381,9 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
           <li>5 estratégias estatísticas</li>
           <li>Mapa de calor e frequência</li>
           <li>Gestão financeira integrada</li>
-          <li>Atualização automática</li>
+          <li>Acesso pelo celular ou PC</li>
         </ul>
-        <div class="produto-preco">A partir de <strong>R$ 37</strong><sup style="font-size:13px;">,90</sup>/mês</div>
+        <div class="produto-preco">A partir de <strong>R$ 19</strong><sup style="font-size:13px;">,90</sup>/mês · <b style="color:#0F8A43;">7 dias grátis</b></div>
         <a href="#planos" class="btn-primary" style="justify-content:center;">Ver planos →</a>
       </div>
       <div class="produto coming">
@@ -330,57 +425,75 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
   <div class="container">
     <div class="text-center">
       <div class="eyebrow">StatPro Lotofácil</div>
-      <h2 class="heading">Planos para todos os perfis</h2>
-      <p class="lead">Escolha o plano ideal e comece a analisar dados com precisão estatística.</p>
+      <h2 class="heading">Assinatura simples, acesso imediato</h2>
+      <p class="lead">Escolha seu plano e acesse o StatPro de qualquer lugar, direto no navegador.</p>
       <p style="font-size:13px;color:var(--muted);margin-top:14px;">Já é cliente? <a href="/app" style="color:var(--blue-light);font-weight:600;">Acesse sua conta →</a></p>
     </div>
     <div class="planos-grid">
       <div class="plano">
         <div class="plano-name">Mensal</div>
-        <div class="plano-price"><sup>R$</sup> 37<sup style="font-size:18px;">,90</sup></div>
+        <div class="plano-old"></div>
+        <div class="plano-price"><sup>R$</sup> 19<sup style="font-size:18px;">,90</sup></div>
         <div class="plano-period">por mês · cancele quando quiser</div>
+        <div><span class="plano-trial">🎁 7 dias grátis para testar</span></div>
         <ul class="plano-feats">
-          <li>Acesso completo via web</li>
+          <li>Acesso completo pela web</li>
+          <li>Celular, tablet ou computador</li>
           <li>600+ concursos analisados</li>
           <li>5 estratégias estatísticas</li>
           <li>Mapa de calor e frequência</li>
-          <li>Gestão financeira</li>
+          <li>Gestão financeira e Hall da Fama</li>
           <li>Atualização automática</li>
-          <li>Suporte por email</li>
         </ul>
-        <a href="#" id="btn-mensal" class="btn-plano btn-outline">Assinar mensal</a>
+        <a href="#" id="btn-mensal" class="btn-plano btn-azul">Testar 7 dias grátis</a>
+        <div class="trial-nota">No pagamento, marque <b>"Quero ter um período grátis"</b>. Sem cobrança nos 7 primeiros dias; depois, R$ 19,90/mês. Cancele quando quiser.</div>
       </div>
-      <div class="plano featured">
-        <div class="plano-badge">⭐ Mais popular</div>
+      <div class="plano">
+        <div class="plano-name">Trimestral</div>
+        <div class="plano-old">R$ 59,70</div>
+        <div class="plano-price"><sup>R$</sup> 49<sup style="font-size:18px;">,90</sup></div>
+        <div class="plano-period">a cada 3 meses · R$ 16,63/mês</div>
+        <div><span class="plano-save">Economize 16%</span></div>
+        <ul class="plano-feats">
+          <li>Tudo do plano mensal</li>
+          <li>Acesso por 3 meses</li>
+          <li>Suporte por e-mail</li>
+        </ul>
+        <a href="#" id="btn-trimestral" class="btn-plano btn-outline">Assinar trimestral</a>
+      </div>
+      <div class="plano">
         <div class="plano-name">Anual</div>
-        <div class="plano-price"><sup>R$</sup> 297</div>
-        <div class="plano-period">por ano · equivale a R$ 24,75/mês</div>
+        <div class="plano-old">R$ 238,80</div>
+        <div class="plano-price"><sup>R$</sup> 149</div>
+        <div class="plano-period">por ano · R$ 12,42/mês</div>
+        <div><span class="plano-save">Economize 37%</span></div>
         <ul class="plano-feats">
           <li>Tudo do plano mensal</li>
           <li>Acesso por 12 meses</li>
-          <li>Previsão IA avançada</li>
-          <li>Alertas de atraso</li>
-          <li>Análise de pares frequentes</li>
-          <li>Hall da Fama</li>
           <li>Suporte prioritário</li>
         </ul>
-        <a href="#" id="btn-anual" class="btn-plano btn-azul">Assinar anual</a>
+        <a href="#" id="btn-anual" class="btn-plano btn-outline">Assinar anual</a>
       </div>
-      <div class="plano">
-        <div class="plano-name">Vitalício</div>
-        <div class="plano-price" style="color:var(--gold-light);"><sup style="color:var(--muted);">R$</sup> 497</div>
-        <div class="plano-period">pagamento único · use para sempre</div>
+      <div class="plano featured">
+        <div class="plano-badge">🏆 Plano Fundador</div>
+        <div class="plano-name">Anual Fundador</div>
+        <div class="plano-old">R$ 149</div>
+        <div class="plano-price"><sup>R$</sup> 99</div>
+        <div class="plano-period">por ano · só R$ 8,25/mês</div>
+        <div class="vagas">🔥 Só para os 50 primeiros assinantes</div>
         <ul class="plano-feats">
-          <li>Software instalado no PC</li>
           <li>Tudo do plano anual</li>
-          <li>Funciona offline</li>
-          <li>Sem mensalidade nunca</li>
-          <li>Chave de ativação única</li>
-          <li>Atualizações inclusas</li>
-          <li>Suporte vitalício</li>
+          <li>Acesso por 12 meses</li>
+          <li>Preço especial de lançamento</li>
+          <li>Suporte prioritário</li>
         </ul>
-        <a href="#" id="btn-vitali" class="btn-plano btn-outline" style="border-color:rgba(245,158,11,0.3);color:var(--gold-light);">Adquirir vitalício</a>
+        <a href="#" id="btn-fundador" class="btn-plano btn-ouro">Quero ser fundador</a>
       </div>
+    </div>
+    <div class="acesso-steps">
+      <div class="acesso-step"><div class="acesso-num">1</div><div><b>Escolha seu plano</b>Teste grátis no Mensal ou garanta o Fundador.</div></div>
+      <div class="acesso-step"><div class="acesso-num">2</div><div><b>Receba o acesso</b>Login e senha chegam no seu e-mail.</div></div>
+      <div class="acesso-step"><div class="acesso-num">3</div><div><b>Use onde quiser</b>No celular ou no PC, sem instalar nada.</div></div>
     </div>
     <p class="plano-disclaimer">⚠️ O StatPro é uma ferramenta de análise estatística de dados históricos públicos. Não garante resultados. Use com responsabilidade.</p>
   </div>
@@ -399,9 +512,9 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
       <div class="tech-card"><div class="tech-icon">🤖</div><div class="tech-title">Inteligência Artificial</div><div class="tech-text">Score preditivo 0–100% por variável com base em 5 critérios: frequência, atraso, repetência, tendência e correlação.</div></div>
       <div class="tech-card"><div class="tech-icon">📊</div><div class="tech-title">Análise Estatística</div><div class="tech-text">Processamento de frequência, atraso e padrões em séries históricas com visualização em mapas de calor interativos.</div></div>
       <div class="tech-card"><div class="tech-icon">🔄</div><div class="tech-title">Dados em Tempo Real</div><div class="tech-text">Integração com APIs públicas para atualização automática da base de dados com um único clique.</div></div>
-      <div class="tech-card"><div class="tech-icon">🖥</div><div class="tech-title">Desktop & Web</div><div class="tech-text">Disponível como software Windows instalado (offline) e como sistema web acessível por qualquer navegador.</div></div>
-      <div class="tech-card"><div class="tech-icon">🔒</div><div class="tech-title">Privacidade Total</div><div class="tech-text">Dados armazenados localmente no seu dispositivo. Nenhuma informação enviada a servidores externos.</div></div>
-      <div class="tech-card"><div class="tech-icon">⚡</div><div class="tech-title">Alta Performance</div><div class="tech-text">Interface leve e responsiva com análises processadas instantaneamente, mesmo sem conexão com a internet.</div></div>
+      <div class="tech-card"><div class="tech-icon">📱</div><div class="tech-title">100% Online</div><div class="tech-text">Funciona direto no navegador do celular, tablet ou computador. Nada para baixar ou instalar.</div></div>
+      <div class="tech-card"><div class="tech-icon">🔒</div><div class="tech-title">Acesso Seguro</div><div class="tech-text">Login individual com e-mail e senha, conexão criptografada e assinatura verificada a cada acesso.</div></div>
+      <div class="tech-card"><div class="tech-icon">⚡</div><div class="tech-title">Alta Performance</div><div class="tech-text">Interface leve e responsiva, com análises processadas na hora, mesmo em celulares simples.</div></div>
     </div>
   </div>
 </section>
@@ -509,9 +622,14 @@ footer{padding:48px 60px 32px;border-top:1px solid var(--border2);}
 </footer>
 
 <script>
-document.getElementById('btn-mensal').href='https://pay.hotmart.com/Y106105565G';
-document.getElementById('btn-anual').href='https://pay.hotmart.com/Y106105565G';
-document.getElementById('btn-vitali').href='https://pay.hotmart.com/J106105740L';
+// Links de pagamento — ofertas da Hotmart, produto 7864015 (14/11/2026)
+var LINKS={
+  mensal:'https://pay.hotmart.com/Y106105565G?off=sjpl4w70',
+  trimestral:'https://pay.hotmart.com/Y106105565G?off=8nrfkero',
+  anual:'https://pay.hotmart.com/Y106105565G?off=6a1k3hyz',
+  fundador:'https://pay.hotmart.com/Y106105565G?off=tcpkpqw6'
+};
+['mensal','trimestral','anual','fundador'].forEach(function(k){document.getElementById('btn-'+k).href=LINKS[k];});
 </script>
 </body>
 </html>
