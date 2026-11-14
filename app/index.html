@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StatPro — Analisador de Dados Estatísticos</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 
 <!-- PWA -->
 <link rel="manifest" href="/app/manifest.json">
-<meta name="theme-color" content="#0a0f1e">
+<meta name="theme-color" content="#1240B8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -156,25 +156,25 @@
 
 <style>
 :root {
-  --bg:      #080b12;
-  --bg2:     #0e1220;
-  --bg3:     #141926;
-  --bg4:     #1a2133;
-  --border:  rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.12);
-  --text:    #f0f2fa;
-  --muted:   #8892b0;
-  --gold:    #f5c542;
-  --gold2:   #e0a820;
-  --gold3:   rgba(245,197,66,0.12);
-  --green:   #00d4a0;
-  --green2:  rgba(0,212,160,0.12);
-  --red:     #ff5e7a;
-  --red2:    rgba(255,94,122,0.12);
-  --blue:    #4d9fff;
-  --blue2:   rgba(77,159,255,0.12);
-  --purple:  #a78bfa;
-  --purple2: rgba(167,139,250,0.12);
+  --bg:      #0D2C7A;
+  --bg2:     rgba(255,255,255,0.09);
+  --bg3:     rgba(255,255,255,0.13);
+  --bg4:     #2450B8;
+  --border:  rgba(255,255,255,0.14);
+  --border2: rgba(255,255,255,0.24);
+  --text:    #ffffff;
+  --muted:   #C3D3F5;
+  --gold:    #FFC93C;
+  --gold2:   #F5B731;
+  --gold3:   rgba(255,201,60,0.16);
+  --green:   #2EF0B6;
+  --green2:  rgba(46,240,182,0.16);
+  --red:     #FF7A90;
+  --red2:    rgba(255,122,144,0.16);
+  --blue:    #8CC0FF;
+  --blue2:   rgba(140,192,255,0.16);
+  --purple:  #C4B1FF;
+  --purple2: rgba(196,177,255,0.16);
   --orange:  #ff8c42;
   --font:    'Inter', system-ui, -apple-system, sans-serif;
   --mono:    'JetBrains Mono', 'Courier New', monospace;
@@ -444,17 +444,55 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   .hamburger{display:block;}
   .two-col,.three-col,.form-row{grid-template-columns:1fr;}
 }
+
+/* ════ TEMA TARGETPRO CO. (nov/2026) — azul-royal vibrante, igual ao site/capa ════ */
+body{background:radial-gradient(900px 600px at 10% 0%,#3D8BFF 0%,transparent 60%),linear-gradient(160deg,#1E5BFF 0%,#1240B8 45%,#0A2463 100%) fixed;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+.sidebar{background:linear-gradient(180deg,#0A2463 0%,#0D2C7A 100%);border-right:1px solid rgba(255,255,255,.12);box-shadow:4px 0 24px rgba(0,0,0,.18);}
+.logo-title{font-family:'Poppins','Inter',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;line-height:1.1;}
+.logo-title b{color:#FFC93C;font-weight:800;}
+.logo-sub{font-family:'Poppins','Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:none;color:#C3D3F5;}
+.logo-sub em{font-style:normal;color:#F5B731;}
+.logo-glow{background:linear-gradient(90deg,transparent,#F5B731,transparent);}
+.topbar{background:rgba(10,36,99,0.55);border-bottom:1px solid rgba(255,255,255,.12);}
+.card,.stat-card,.modal{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.16);box-shadow:0 10px 30px rgba(0,0,0,.15);backdrop-filter:blur(8px);}
+.modal{background:#1A47B0;}
+.notif{background:#1A47B0;}
+.jogo-card{background:rgba(255,255,255,0.08);}
+.tab.active{background:#fff;color:#0A2463;}
+.nav-item.active{background:rgba(255,201,60,0.16);color:#FFC93C;}
+.btn-gold,.login-btn{background:#F5B731;color:#0A2463;}
+.btn-gold:hover,.login-btn:hover{background:#FFC93C;}
+input,select,textarea{background:rgba(255,255,255,0.12);color:#fff;}
+input::placeholder,textarea::placeholder{color:#AFC2EC;}
+select option{background:#1240B8;color:#fff;}
+tr:hover td{background:rgba(255,255,255,0.05);}
+.ball.no-match{color:#C3D3F5;}
+.app-content,.main{position:relative;z-index:1;}
+#login-screen{background:radial-gradient(900px 600px at 15% 0%,#3D8BFF 0%,transparent 60%),linear-gradient(160deg,#1E5BFF 0%,#1240B8 55%,#0A2463 100%);}
+.login-box{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.22);box-shadow:0 20px 50px rgba(0,0,0,.25);backdrop-filter:blur(10px);}
+.login-brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;}
+.login-brand span{font-family:'Poppins','Inter',sans-serif;font-weight:700;font-size:20px;color:#fff;}
+.login-brand em{font-style:normal;color:#F5B731;}
+.login-logo-title{font-family:'Poppins','Inter',sans-serif;font-size:44px;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1;}
+.login-logo-title b{color:#FFC93C;}
+.login-logo-sub{color:#C3D3F5;font-weight:600;letter-spacing:.08em;}
+.login-field input{background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.28);color:#fff;}
+.login-field label{color:#E3ECFF;}
+.ball.result{background:#FFC93C;color:#0A2463;border:1.5px solid #FFC93C;font-weight:800;}
+.ball.hot{background:rgba(255,140,66,0.28);color:#FFD1B0;}
+.ball.cold{color:#D6E7FF;}
 </style>
 </head>
 <body>
 
 <!-- TELA DE LOGIN -->
-<div id="login-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#080b12;display:flex;align-items:center;justify-content:center;z-index:9999;">
+<div id="login-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:9999;">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-icon">📊</div>
-      <div class="login-logo-title">StatPro</div>
-      <div class="login-logo-sub">Analisador Estatístico</div>
+      <div class="login-brand"><svg width="46" height="46" viewBox="-40 -40 580 580" fill="none" style="background:#fff;border-radius:50%;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.25)"><circle cx="250" cy="250" r="226" stroke="#2F7BFF" stroke-width="48"/><circle cx="250" cy="250" r="136" stroke="#F5B731" stroke-width="48"/><circle cx="250" cy="250" r="58" fill="#F5B731"/></svg><span>TargetPro <em>Co.</em></span></div>
+      <div class="login-logo-title">Stat<b>Pro</b></div>
+      <div class="login-logo-sub">Analisador de Dados Estatísticos</div>
     </div>
     <div class="login-field">
       <label>Email</label>
@@ -498,20 +536,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="logo">
       <div class="logo-glow"></div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="21" cy="21" r="20" fill="#0a0f1e" stroke="#3b82f6" stroke-width="1.5"/>
-          <!-- Bar chart -->
-          <rect x="7" y="26" width="4" height="8" rx="1" fill="#3b82f6" opacity="0.7"/>
-          <rect x="13" y="21" width="4" height="13" rx="1" fill="#3b82f6" opacity="0.8"/>
-          <rect x="19" y="23" width="4" height="11" rx="1" fill="#f59e0b" opacity="0.9"/>
-          <rect x="25" y="17" width="4" height="17" rx="1" fill="#3b82f6" opacity="0.9"/>
-          <rect x="31" y="12" width="4" height="22" rx="1" fill="#f59e0b"/>
-          <!-- Gold dot accent -->
-          <circle cx="33" cy="9" r="3" fill="#f59e0b"/>
-        </svg>
+        <svg width="40" height="40" viewBox="-40 -40 580 580" fill="none" style="background:#fff;border-radius:50%;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.25)"><circle cx="250" cy="250" r="226" stroke="#2F7BFF" stroke-width="48"/><circle cx="250" cy="250" r="136" stroke="#F5B731" stroke-width="48"/><circle cx="250" cy="250" r="58" fill="#F5B731"/></svg>
         <div>
-          <div class="logo-title">STATPRO</div>
-          <div class="logo-sub">Analisador Estatístico v6</div>
+          <div class="logo-title">Stat<b>Pro</b></div>
+          <div class="logo-sub">by TargetPro <em>Co.</em></div>
         </div>
       </div>
     </div>
