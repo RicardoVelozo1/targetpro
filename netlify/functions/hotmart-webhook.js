@@ -24,6 +24,14 @@ async function enviarEmailVitalicio(destinatario, nomeCliente, linkSenha) {
         Criar minha senha
       </a>
     </div>
+    <p style="font-size: 15px; line-height: 1.6;">
+      Depois de criar a senha, acesse <a href="https://targetproco.com.br/app" style="color:#2F7BFF; font-weight:bold;">targetproco.com.br/app</a>
+      com seu e-mail e senha, pelo <strong>celular ou computador</strong>. Não é preciso instalar nada.
+    </p>
+    <p style="font-size: 13px; color:#4b5563; line-height: 1.6; background:#F2F6FF; padding:12px 14px; border-radius:8px;">
+      📱 <strong>Dica:</strong> no celular, abra o link no navegador e toque em "Adicionar à tela inicial".
+      O StatPro fica com ícone próprio, como um aplicativo.
+    </p>
     <p style="font-size: 13px; color:#6b7280; line-height: 1.6;">
       Se o botão não funcionar, copie e cole este link no seu navegador:<br>
       <a href="${linkSenha}" style="color:#3b82f6; word-break: break-all;">${linkSenha}</a>
@@ -106,7 +114,7 @@ async function enviarEmailDefinicaoSenha(destinatario, nomeCliente, linkSenha) {
   const html = `
   <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; color: #1f2937;">
     <div style="text-align:center; margin-bottom: 24px;">
-      <span style="font-size: 22px; font-weight: bold; color: #3b82f6;">Target<span style="color:#f59e0b;">Pro</span></span>
+      <span style="font-size: 22px; font-weight: bold; color: #0A2463;">TargetPro <span style="color:#F5B731;">Co.</span></span>
     </div>
     <h2 style="color:#111827; font-size: 20px;">Bem-vindo(a)${primeiroNome ? ", " + primeiroNome : ""}!</h2>
     <p style="font-size: 15px; line-height: 1.6;">
@@ -118,6 +126,14 @@ async function enviarEmailDefinicaoSenha(destinatario, nomeCliente, linkSenha) {
         Criar minha senha
       </a>
     </div>
+    <p style="font-size: 15px; line-height: 1.6;">
+      Depois de criar a senha, acesse <a href="https://targetproco.com.br/app" style="color:#2F7BFF; font-weight:bold;">targetproco.com.br/app</a>
+      com seu e-mail e senha, pelo <strong>celular ou computador</strong>. Não é preciso instalar nada.
+    </p>
+    <p style="font-size: 13px; color:#4b5563; line-height: 1.6; background:#F2F6FF; padding:12px 14px; border-radius:8px;">
+      📱 <strong>Dica:</strong> no celular, abra o link no navegador e toque em "Adicionar à tela inicial".
+      O StatPro fica com ícone próprio, como um aplicativo.
+    </p>
     <p style="font-size: 13px; color:#6b7280; line-height: 1.6;">
       Se o botão não funcionar, copie e cole este link no seu navegador:<br>
       <a href="${linkSenha}" style="color:#3b82f6; word-break: break-all;">${linkSenha}</a>
@@ -262,14 +278,66 @@ exports.handler = async (event) => {
   }
 
   // Determinar plano
+  // Os códigos de oferta da Hotmart são aleatórios (ex.: "6a1k3hyz"), então o plano
+  // é identificado pelo mapa de ofertas abaixo; como reserva, usa o nome/periodicidade
+  // do plano de assinatura enviado no payload.
+  // Ofertas do produto 7864015 (atualizadas em 14/11/2026):
+  const OFERTAS = {
+    "sjpl4w70": "mensal",      // Plano Mensal — R$ 19,90
+    "8nrfkero": "trimestral",  // Plano Trimestral — R$ 49,90
+    "6a1k3hyz": "anual",       // Plano Anual — R$ 149,00
+    "tcpkpqw6": "fundador",    // Plano Fundador (anual) — R$ 99,00
+  };
+  const nomePlanoHotmart = (
+    body?.data?.subscription?.plan?.name ||
+    body?.data?.purchase?.offer?.name || ""
+  ).toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
   let plano = "mensal";
   if (product_id === "7864099") {
     plano = "vitalicio";
-  } else if (offer_code.includes("anual") || offer_code.includes("annual")) {
+  } else if (OFERTAS[offer_code]) {
+    plano = OFERTAS[offer_code];
+  } else if (nomePlanoHotmart.includes("fundador")) {
+    plano = "fundador";
+  } else if (nomePlanoHotmart.includes("trimestral") || offer_code.includes("trimestral")) {
+    plano = "trimestral";
+  } else if (nomePlanoHotmart.includes("anual") || offer_code.includes("anual") || offer_code.includes("annual")) {
     plano = "anual";
   }
+  if (!OFERTAS[offer_code] && product_id !== "7864099") {
+    console.warn(`Oferta não mapeada: '${offer_code}' (plano Hotmart: '${nomePlanoHotmart}') → '${plano}'`);
+  }
 
-  const dias = plano === "vitalicio" ? 36500 : plano === "anual" ? 365 : 30;
+  // Período de teste grátis (Plano Mensal tem 7 dias grátis desde 14/11/2026).
+  // Na adesão em teste nada é cobrado: libera só os dias do teste (+1 de folga).
+  // Quando a 1ª cobrança for aprovada, chega outro PURCHASE_APPROVED com valor > 0
+  // e o acesso é estendido normalmente pelo plano.
+  const DIAS_TESTE = 7;
+  const purchase = body?.data?.purchase || {};
+  const valorPago = Number(purchase?.price?.value ?? purchase?.full_price?.value ?? NaN);
+  const statusTexto = [purchase?.status, body?.data?.subscription?.status].join(" ").toLowerCase();
+  const emTeste =
+    purchase?.is_free_trial === true ||
+    purchase?.isFreeTrial === true ||
+    statusTexto.includes("trial") ||
+    (valorPago === 0 && plano !== "vitalicio");
+  if (emTeste || !OFERTAS[offer_code]) {
+    // Log detalhado para conferir o formato real do payload da Hotmart
+    console.log("Detalhe da compra:", JSON.stringify({
+      offer_code, emTeste, valorPago,
+      purchase_status: purchase?.status,
+      recurrence_number: purchase?.recurrence_number,
+      subscription: body?.data?.subscription,
+    }));
+  }
+
+  // Dias de acesso por período + 3 dias de folga para a renovação automática
+  // da Hotmart chegar antes de o acesso expirar.
+  const DIAS_PLANO = { vitalicio: 36500, fundador: 365, anual: 365, trimestral: 92, mensal: 30 };
+  const dias = emTeste
+    ? DIAS_TESTE + 1
+    : (DIAS_PLANO[plano] || 30) + (plano === "vitalicio" ? 0 : 3);
   const data_inicio     = new Date();
   const data_expiracao  = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
 
@@ -306,14 +374,16 @@ exports.handler = async (event) => {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, ""); // remove acentos
 
-    const HIERARQUIA = { "vitalicio": 3, "anual": 2, "mensal": 1 };
+    const HIERARQUIA = { "vitalicio": 4, "anual": 3, "fundador": 3, "trimestral": 2, "mensal": 1 };
     const docAtual = await db.collection("assinaturas").doc(uid).get();
     if (docAtual.exists) {
       const planoAtual = docAtual.data()?.plano;
       const statusAtual = docAtual.data()?.status;
       const nivelAtual = HIERARQUIA[normalizarPlano(planoAtual)] || 0;
       const nivelNovo = HIERARQUIA[normalizarPlano(plano)] || 0;
-      if (statusAtual === "ativo" && nivelAtual > nivelNovo) {
+      const expAtual = docAtual.data()?.data_expiracao?.toDate?.();
+      const aindaValido = !expAtual || expAtual > new Date();
+      if (statusAtual === "ativo" && aindaValido && nivelAtual > nivelNovo) {
         console.log(`⚠️ Downgrade bloqueado: ${email} tem plano '${planoAtual}' (nível ${nivelAtual}) — renovação de '${plano}' (nível ${nivelNovo}) ignorada.`);
         return {
           statusCode: 200,
@@ -333,6 +403,7 @@ exports.handler = async (event) => {
       data_expiracao: Timestamp.fromDate(data_expiracao),
       hotmart_product_id: product_id,
       hotmart_offer_code: offer_code,
+      em_teste: emTeste,
       ultima_atualizacao: FieldValue.serverTimestamp(),
     }, { merge: true });
 
