@@ -262,8 +262,42 @@ exports.handler = async (event) => {
   // Log para debug
   console.log("Webhook recebido:", JSON.stringify({ event: body?.event, product: body?.data?.product?.id }));
 
-  // Filtrar apenas eventos de compra aprovada
+  // Filtrar eventos
   const event_type = body?.event;
+
+  // Reembolso / chargeback / cancelamento da compra: corta o acesso na hora.
+  // (Cancelamento da ASSINATURA — SUBSCRIPTION_CANCELLATION — não corta: o cliente
+  //  usa até o fim do período já pago, e a data de expiração encerra sozinha.)
+  const EVENTOS_CORTE = ["PURCHASE_REFUNDED", "PURCHASE_CHARGEBACK", "PURCHASE_CANCELED", "PURCHASE_PROTEST"];
+  if (EVENTOS_CORTE.includes(event_type)) {
+    const emailCorte = body?.data?.buyer?.email?.toLowerCase().trim();
+    const transacao = body?.data?.purchase?.transaction || "";
+    if (!emailCorte) return { statusCode: 200, body: "Sem e-mail no evento " + event_type };
+    try {
+      const u = await auth.getUserByEmail(emailCorte);
+      const ref = db.collection("assinaturas").doc(u.uid);
+      const atual = await ref.get();
+      if (!atual.exists) return { statusCode: 200, body: "Sem assinatura para cortar" };
+      const transAtual = atual.data()?.hotmart_transaction || "";
+      // Só corta se o evento for da mesma compra que está valendo (ou se não houver registro da compra)
+      if (transAtual && transacao && transAtual !== transacao) {
+        console.log(`Evento ${event_type} de outra compra (${transacao}); assinatura atual (${transAtual}) mantida.`);
+        return { statusCode: 200, body: "Evento de outra compra — mantido" };
+      }
+      await ref.set({
+        status: event_type === "PURCHASE_REFUNDED" ? "reembolsado" : "cancelado",
+        motivo_corte: event_type,
+        data_corte: FieldValue.serverTimestamp(),
+        ultima_atualizacao: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      console.log(`Acesso cortado (${event_type}) para ${emailCorte}`);
+      return { statusCode: 200, body: "Acesso cortado: " + event_type };
+    } catch (err) {
+      console.error("Erro ao cortar acesso:", err);
+      return { statusCode: 200, body: "Usuário não encontrado para " + event_type };
+    }
+  }
+
   if (event_type !== "PURCHASE_APPROVED" && event_type !== "PURCHASE_COMPLETE") {
     return { statusCode: 200, body: "Ignored event: " + event_type };
   }
@@ -404,6 +438,8 @@ exports.handler = async (event) => {
       hotmart_product_id: product_id,
       hotmart_offer_code: offer_code,
       em_teste: emTeste,
+      hotmart_transaction: body?.data?.purchase?.transaction || "",
+      motivo_corte: FieldValue.delete(),
       ultima_atualizacao: FieldValue.serverTimestamp(),
     }, { merge: true });
 
