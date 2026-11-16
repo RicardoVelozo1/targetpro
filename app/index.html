@@ -58,7 +58,7 @@
 
       if (!snap.exists()) {
         await signOut(auth);
-        mostrarErroAcesso("Nenhuma assinatura encontrada para este e-mail.");
+        mostrarErroAcesso("Nenhuma assinatura encontrada para este e-mail. Use o mesmo e-mail da compra na Hotmart, ou assine em targetproco.com.br");
         return false;
       }
 
@@ -66,7 +66,8 @@
 
       if (dados.status !== "ativo") {
         await signOut(auth);
-        mostrarErroAcesso("Sua assinatura está " + dados.status + ". Entre em contato: targetproco@gmail.com");
+        const ST = { cancelado: "foi cancelada", reembolsado: "foi reembolsada", suspenso: "está suspensa", inativo: "está inativa" };
+        mostrarErroAcesso("Sua assinatura " + (ST[dados.status] || "não está ativa") + ". Para voltar a usar, assine em targetproco.com.br ou fale com targetproco@gmail.com");
         return false;
       }
 
@@ -74,7 +75,7 @@
         const expiracao = dados.data_expiracao?.toDate();
         if (expiracao && expiracao < new Date()) {
           await signOut(auth);
-          mostrarErroAcesso("Sua assinatura expirou em " + expiracao.toLocaleDateString("pt-BR") + ". Renove em targetproco.com.br");
+          mostrarErroAcesso((dados.em_teste ? "Seu teste grátis terminou em " : "Sua assinatura expirou em ") + expiracao.toLocaleDateString("pt-BR") + ". Assine ou renove em targetproco.com.br");
           return false;
         }
       }
@@ -109,12 +110,17 @@
     if (user) {
       const valido = await verificarAssinatura(user);
       if (valido) {
+        window._uidAtual = user.uid;
+        const errEl = document.getElementById('login-error'); if (errEl) errEl.textContent = '';
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-content').style.display = 'flex';
         const badge = document.getElementById('user-email-badge');
         if (badge) badge.textContent = user.email;
+        if (typeof window._iniciarApp === 'function') window._iniciarApp();
       }
     } else {
+      // Saiu: recarrega para não deixar dados de uma conta à vista da próxima
+      if (window._appIniciado) { location.reload(); return; }
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('app-content').style.display = 'none';
     }
@@ -482,6 +488,7 @@ tr:hover td{background:rgba(255,255,255,0.05);}
 .ball.result{background:#FFC93C;color:#0A2463;border:1.5px solid #FFC93C;font-weight:800;}
 .ball.hot{background:rgba(255,140,66,0.28);color:#FFD1B0;}
 .ball.cold{color:#D6E7FF;}
+.step4-bar{position:sticky;bottom:0;z-index:20;background:rgba(10,36,99,0.92);backdrop-filter:blur(8px);padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,0.18);}
 .welcome-bg{background:radial-gradient(900px 600px at 15% 0%,#3D8BFF 0%,transparent 60%),linear-gradient(160deg,#1E5BFF 0%,#1240B8 55%,#0A2463 100%);}
 .welcome-box{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.22);box-shadow:0 20px 50px rgba(0,0,0,.25);backdrop-filter:blur(10px);}
 
@@ -524,6 +531,7 @@ tr:hover td{background:rgba(255,255,255,0.05);}
     <button class="login-btn" onclick="fazerLogin()">Entrar no StatPro</button>
     <div class="login-error" id="login-error"></div>
     <div class="login-forgot" onclick="recuperarSenha()">Esqueci minha senha</div>
+    <div style="margin-top:14px;font-size:12px;line-height:1.5;color:rgba(255,255,255,.75);text-align:center;">Primeiro acesso? Use o link do e-mail de boas-vindas ou digite seu e-mail e toque em "Esqueci minha senha".<br>Ainda não assina? <a href="/" style="color:#FFC93C;font-weight:600;">Teste grátis por 7 dias</a></div>
   </div>
 </div>
 
@@ -676,7 +684,7 @@ tr:hover td{background:rgba(255,255,255,0.05);}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
           <div>
             <div style="font-size:16px;font-weight:700;" id="prox-concurso-label">Próximo concurso</div>
-            <div style="font-size:13px;color:var(--muted);">5 estratégias inteligentes geradas para você</div>
+            <div style="font-size:13px;color:var(--muted);">Os jogos de cada módulo já estão prontos abaixo. <strong style="color:var(--text);">1)</strong> ajuste a quantidade (− +) &nbsp;<strong style="color:var(--text);">2)</strong> toque em "+ Jogar este" ou selecione o módulo inteiro &nbsp;<strong style="color:var(--text);">3)</strong> Continuar.</div>
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-ghost btn-sm" onclick="gerarSugestoes()">↺ Regenerar tudo</button>
@@ -685,9 +693,9 @@ tr:hover td{background:rgba(255,255,255,0.05);}
         </div>
         <div id="sugestao-wrap"></div>
 
-        <div style="display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap;">
+        <div class="step4-bar" style="display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap;">
           <button class="btn btn-gold" id="step4-btn-avancar" onclick="hojeStep(5)" disabled>Continuar → Confirmar Jogos ✓</button>
-          <span id="step4-contador" style="font-size:13px;color:var(--muted);">Selecione ao menos 1 jogo, ou salve uma estratégia inteira acima.</span>
+          <span id="step4-contador" style="font-size:13px;color:var(--muted);">Toque em "+ Jogar este" ou selecione um módulo inteiro acima.</span>
         </div>
       </div>
 
@@ -1023,6 +1031,7 @@ let generatedGames = [];
 let lastGenerated = null;
 let sugestoesGeradas = [];
 let editingState = { si: -1, ji: -1 };
+let sugestoesConcurso = null;
 let jogosSelecionadosStep4 = []; // {si, ji, strat, nums} — seleção feita já no Step 4
 let novoResultadoPendente = null;
 let histFiltered = [...RESULTADOS];
@@ -1099,6 +1108,15 @@ function goTo(id) {
   document.getElementById('topbar-title').textContent = title;
   document.getElementById('topbar-sub').textContent = sub;
   closeSidebar();
+  if (!RESULTADOS.length && ['frequencia','historico','dashboard','previsao'].includes(id)) {
+    if (!document.getElementById('aviso-base-'+id)) {
+      const pg = document.getElementById('page-' + id);
+      const div = document.createElement('div'); div.id = 'aviso-base-'+id; div.style.marginBottom = '16px';
+      div.innerHTML = baseVaziaHtml('ver as análises'); pg.prepend(div);
+    }
+    return;
+  }
+  document.querySelectorAll('[id^="aviso-base-"]').forEach(e => e.remove());
   if (id === 'frequencia') renderFrequencia();
   if (id === 'historico') renderHistorico();
   if (id === 'dashboard') renderDashboard();
@@ -1260,6 +1278,7 @@ async function salvarJogoIA() {
 
 // ========== DASHBOARD ==========
 function renderDashboard() {
+  if (!RESULTADOS.length) return; // base ainda não baixada
   const ult = RESULTADOS[0];
   document.getElementById('ult-num').textContent = 'Concurso ' + ult.c;
   document.getElementById('ult-data').textContent = ult.d;
@@ -1384,7 +1403,28 @@ async function salvarJogos(games, strat) {
 }
 
 // ========== SUGESTÕES (Fluxo Diário Step 4) ==========
+function baseVaziaHtml(acao) {
+  return `<div class="card" style="text-align:center;padding:28px 20px;">
+    <div style="font-size:34px;margin-bottom:8px;">📥</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Falta baixar a base de concursos</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Para ${acao}, o StatPro precisa dos últimos 600 resultados. Leva 2 a 3 minutos e só é feito uma vez neste aparelho.</div>
+    <button class="btn btn-gold" onclick="abrirDownloadBase()">⬇ Baixar base agora</button>
+  </div>`;
+}
+function abrirDownloadBase() {
+  document.getElementById('welcome-step-inicial').style.display = 'block';
+  document.getElementById('welcome-step-download').style.display = 'none';
+  document.getElementById('welcome-step-concluido').style.display = 'none';
+  document.getElementById('welcome-screen').style.display = 'flex';
+}
+
 function gerarSugestoes() {
+  if (RESULTADOS.length < 10) {
+    sugestoesGeradas = []; jogosSelecionadosStep4 = [];
+    document.getElementById('sugestao-wrap').innerHTML = baseVaziaHtml('gerar os jogos');
+    atualizarContadorStep4();
+    return;
+  }
   const ult = RESULTADOS[0];
   const ult10 = RESULTADOS.slice(0,10);
   const freqUlt10 = {};
@@ -1455,6 +1495,7 @@ function gerarSugestoes() {
   ];
 
   sugestoesGeradas = STRATS.map(s => ({ ...s, qty:1, jogos:[s.fn()] }));
+  sugestoesConcurso = ult.c + 1;
   jogosSelecionadosStep4 = [];
   document.getElementById('prox-concurso-label').textContent = `Concurso ${ult.c + 1}`;
   renderSugestoes();
@@ -1480,11 +1521,12 @@ function renderSugestoes() {
         ${renderJogosHtml(s.jogos, si)}
       </div>
       <div style="padding:0 20px 16px;">
-        <button class="btn btn-gold btn-sm btn-full" onclick="salvarEstrategia(${si})">
-          💾 Salvar ${s.qty} jogo(s) desta estratégia
+        <button class="btn btn-gold btn-sm btn-full" id="btn-estr-${si}" onclick="salvarEstrategia(${si})">
+          ✓ Selecionar os ${s.qty} jogo(s) deste módulo
         </button>
       </div>
     </div>`).join('');
+  sugestoesGeradas.forEach((_, si) => atualizarBotaoEstrategia(si));
 }
 
 function renderJogosHtml(jogos, si) {
@@ -1557,16 +1599,38 @@ function changeQty(si, delta) {
   while (s.jogos.length < newQty) s.jogos.push(s.fn());
   while (s.jogos.length > newQty) s.jogos.pop();
   s.qty = newQty;
+  jogosSelecionadosStep4 = jogosSelecionadosStep4.filter(j=>!(j.si===si && j.ji>=newQty));
   document.getElementById(`qty-val-${si}`).textContent = newQty;
   document.getElementById(`strat-games-${si}`).innerHTML = renderJogosHtml(s.jogos, si);
-  const btn = document.querySelector(`#strat-games-${si}`).closest('.strat-block').querySelector('.btn-gold');
-  if (btn) btn.textContent = `💾 Salvar ${newQty} jogo(s) desta estratégia`;
+  atualizarBotaoEstrategia(si);
+  atualizarContadorStep4();
 }
 
 function salvarEstrategia(si) {
+  // Seleciona todos os jogos deste módulo. A gravação na Gestão acontece só no passo 5 (sem duplicar).
   const s = sugestoesGeradas[si];
   if (s.jogos.some(j=>j.length!==15)) { notify('Todos os jogos precisam ter 15 números.', 'error'); return; }
-  salvarJogos(s.jogos, s.nome.replace(/[^\w\sçãéêôàáíó]/gi,'').trim());
+  const strat = s.nome.replace(/[^\w\sçãéêôàáíó]/gi,'').trim();
+  const todosSel = s.jogos.every((_,ji)=>jogosSelecionadosStep4.some(j=>j.si===si && j.ji===ji));
+  if (todosSel) {
+    jogosSelecionadosStep4 = jogosSelecionadosStep4.filter(j=>j.si!==si);
+  } else {
+    s.jogos.forEach((nums,ji)=>{
+      if (!jogosSelecionadosStep4.some(j=>j.si===si && j.ji===ji)) jogosSelecionadosStep4.push({si, ji, strat, nums:[...nums]});
+    });
+  }
+  document.getElementById(`strat-games-${si}`).innerHTML = renderJogosHtml(s.jogos, si);
+  atualizarBotaoEstrategia(si);
+  atualizarContadorStep4();
+  if (!todosSel) notify(`${s.jogos.length} jogo(s) selecionado(s). Toque em "Continuar" para confirmar.`);
+}
+
+function atualizarBotaoEstrategia(si) {
+  const s = sugestoesGeradas[si];
+  const btn = document.getElementById(`btn-estr-${si}`);
+  if (!btn || !s) return;
+  const todosSel = s.jogos.length && s.jogos.every((_,ji)=>jogosSelecionadosStep4.some(j=>j.si===si && j.ji===ji));
+  btn.textContent = todosSel ? `✓ ${s.qty} jogo(s) selecionado(s) — tocar para desmarcar` : `✓ Selecionar os ${s.qty} jogo(s) deste módulo`;
 }
 
 // ========== SELEÇÃO INDIVIDUAL DE JOGOS NO STEP 4 ==========
@@ -1584,6 +1648,7 @@ function toggleSelecionarJogo(si, ji) {
     });
   }
   document.getElementById(`strat-games-${si}`).innerHTML = renderJogosHtml(sugestoesGeradas[si].jogos, si);
+  atualizarBotaoEstrategia(si);
   atualizarContadorStep4();
 }
 
@@ -1591,7 +1656,7 @@ function atualizarContadorStep4() {
   const qtd = jogosSelecionadosStep4.length;
   const el = document.getElementById('step4-contador');
   if (el) {
-    el.textContent = qtd > 0 ? `${qtd} jogo(s) selecionado(s)` : 'Selecione ao menos 1 jogo, ou salve uma estratégia inteira acima.';
+    el.textContent = qtd > 0 ? `${qtd} jogo(s) selecionado(s)` : 'Toque em "+ Jogar este" ou selecione um módulo inteiro acima.';
     el.style.color = qtd > 0 ? 'var(--green)' : 'var(--muted)';
   }
   const btnAvancar = document.getElementById('step4-btn-avancar');
@@ -1603,22 +1668,13 @@ function atualizarContadorStep4() {
 let jogosSessao = []; // {strat, nums, selecionado}
 
 function coletarJogosSessao() {
-  if (jogosSelecionadosStep4.length > 0) {
-    // Usa os jogos que o usuário já escolheu manualmente no Step 4
-    jogosSessao = jogosSelecionadosStep4
-      .filter(j => j.nums.length === 15)
-      .map(j => ({ strat: j.strat, nums: j.nums, selecionado: true }));
-    return;
-  }
-  // Fallback: nenhuma seleção feita no Step 4 — comportamento antigo (pega tudo, escolhe aqui)
-  jogosSessao = [];
-  sugestoesGeradas.forEach(s => {
-    s.jogos.forEach(nums => {
-      if (nums.length === 15) {
-        jogosSessao.push({ strat: s.nome.replace(/[^\w\sçãéêôàáíó]/gi,'').trim(), nums, selecionado: true });
-      }
-    });
-  });
+  // Só entram no passo 5 os jogos escolhidos no passo 4 (com os números atuais, após editar/regerar)
+  jogosSessao = jogosSelecionadosStep4
+    .map(j => {
+      const atual = sugestoesGeradas[j.si] && sugestoesGeradas[j.si].jogos[j.ji];
+      return { strat: j.strat, nums: atual ? [...atual] : j.nums, selecionado: true };
+    })
+    .filter(j => j.nums.length === 15);
 }
 
 function renderStep5() {
@@ -1628,9 +1684,9 @@ function renderStep5() {
   if (!jogosSessao.length) {
     document.getElementById('step5-wrap').innerHTML = `
       <div class="alert alert-warn">
-        Nenhum jogo gerado ainda. Volte ao Step 4 e gere seus jogos primeiro.
+        Nenhum jogo selecionado ainda. Volte ao passo 4 e toque em "+ Jogar este" nos jogos que quer fazer (ou selecione um módulo inteiro).
       </div>
-      <button class="btn btn-gold" style="margin-top:14px;" onclick="hojeStep(4)">← Gerar jogos</button>`;
+      <button class="btn btn-gold" style="margin-top:14px;" onclick="hojeStep(4)">← Escolher jogos</button>`;
     document.getElementById('step5-resumo').style.display = 'none';
     return;
   }
@@ -1699,6 +1755,7 @@ async function salvarJogosSelecionados() {
   });
   await salvarApostas();
   updateDashStats();
+  jogosSelecionadosStep4 = []; // evita registrar os mesmos jogos duas vezes
   notify(`✅ ${selecionados.length} jogo(s) registrado(s) na gestão!`);
 
   // Mostrar confirmação
@@ -1727,15 +1784,25 @@ function hojeStep(n) {
     const pill = document.getElementById('step-pill-'+i);
     pill.className = 'step-pill' + (i===n?' active':i<n?' done':'');
   });
+  if (!RESULTADOS.length && (n===2 || n===3)) {
+    document.getElementById(n===2 ? 'conferencia-wrap' : 'analise-wrap').innerHTML = baseVaziaHtml(n===2 ? 'conferir seus jogos' : 'ver a análise');
+    return;
+  }
   if (n===2) renderConferencia();
   if (n===3) renderAnalise();
-  if (n===4) gerarSugestoes();
+  if (n===4) {
+    // Mantém os jogos e a seleção ao voltar do passo 5; só gera de novo se não houver jogos ou se a base mudou
+    const prox = RESULTADOS.length ? RESULTADOS[0].c + 1 : null;
+    if (!sugestoesGeradas.length || sugestoesConcurso !== prox) gerarSugestoes();
+    else { renderSugestoes(); atualizarContadorStep4(); }
+  }
   if (n===5) renderStep5();
 }
 
 async function buscarResultado() {
   const btn = document.getElementById('btn-buscar');
   const status = document.getElementById('update-status');
+  if (!RESULTADOS.length) { abrirDownloadBase(); return; }
   btn.disabled = true; btn.textContent = '⟳ Buscando...';
   status.textContent = '';
   const ultimoLocal = RESULTADOS[0].c;
@@ -1796,6 +1863,7 @@ function salvarNovoResultado() {
 async function buscarEmLote() {
   const btn = document.getElementById('btn-lote');
   const status = document.getElementById('lote-status');
+  if (!RESULTADOS.length) { abrirDownloadBase(); return; }
   btn.disabled = true; btn.textContent = '⟳ Buscando...';
   const ultimoLocal = RESULTADOS[0].c;
   const novos = [];
@@ -2157,7 +2225,7 @@ function executarLimpar() {
   const lr=document.getElementById('limpar-resultados').checked;
   document.getElementById('modal-limpar').style.display='none';
   if (!la&&!lr) return;
-  if (la) { apostas=[]; localStorage.removeItem('lf_apostas'); notify('Apostas apagadas.'); renderGestao(); updateDashStats(); }
+  if (la) { apostas=[]; localStorage.removeItem(chaveApostas()); notify('Apostas apagadas.'); renderGestao(); updateDashStats(); }
   if (lr) { notify('Resetando...'); setTimeout(()=>location.reload(),1200); }
 }
 
@@ -2186,6 +2254,9 @@ function finalizarBoasVindas() {
   histFiltered = [...RESULTADOS];
   renderDashboard();
   renderHistorico();
+  atualizarUltimoLocal();
+  goTo('hoje');
+  hojeStep(1);
   notify('🎉 Bem-vindo ao StatPro!', 'success');
 }
 
@@ -2276,11 +2347,29 @@ async function salvarDadosCompletos() {
       const dados = await window.electronAPI.lerDados();
       dados.resultados = RESULTADOS;
       await window.electronAPI.salvarDados(dados);
+    } else {
+      // Versão web: guarda a base no navegador para não precisar baixar de novo
+      localStorage.setItem('lf_resultados', JSON.stringify(RESULTADOS));
     }
   } catch(e) {}
 }
 
 // ========== PERSISTÊNCIA ==========
+function chaveApostas() {
+  const uid = window._uidAtual;
+  if (!uid) return 'lf_apostas';
+  const k = 'lf_apostas_' + uid;
+  // Migração: apostas antigas (sem dono) passam a ser do primeiro usuário que entrar neste aparelho
+  try {
+    if (!localStorage.getItem(k) && localStorage.getItem('lf_apostas') && !localStorage.getItem('lf_apostas_migrado')) {
+      localStorage.setItem(k, localStorage.getItem('lf_apostas'));
+      localStorage.removeItem('lf_apostas');
+      localStorage.setItem('lf_apostas_migrado', uid);
+    }
+  } catch(e) {}
+  return k;
+}
+
 async function carregarApostas() {
   try {
     if (window.electronAPI) {
@@ -2294,7 +2383,7 @@ async function carregarApostas() {
         histFiltered = [...RESULTADOS];
       }
     } else {
-      apostas = JSON.parse(localStorage.getItem('lf_apostas') || '[]');
+      apostas = JSON.parse(localStorage.getItem(chaveApostas()) || '[]');
       const res = localStorage.getItem('lf_resultados');
       if (res) {
         const arr = JSON.parse(res);
@@ -2317,7 +2406,7 @@ async function salvarApostas() {
       dados.resultados = RESULTADOS;
       await window.electronAPI.salvarDados(dados);
     } else {
-      localStorage.setItem('lf_apostas', JSON.stringify(apostas));
+      localStorage.setItem(chaveApostas(), JSON.stringify(apostas));
       localStorage.setItem('lf_resultados', JSON.stringify(RESULTADOS));
     }
   } catch(e) {
@@ -2326,19 +2415,31 @@ async function salvarApostas() {
 }
 
 // ========== INIT ==========
-async function init() {
-  await carregarApostas();
-  renderDashboard();
-  renderHistorico();
+function atualizarUltimoLocal() {
   const ult = RESULTADOS[0];
+  if (!ult) return;
   document.getElementById('local-concurso').textContent = 'Concurso ' + ult.c;
   document.getElementById('local-data').textContent = ult.d;
   document.getElementById('local-bolas').innerHTML = ult.b.map(n=>ballHtml(n,'result','sm')).join('');
+}
+
+async function init() {
+  await carregarApostas();
+  if (RESULTADOS.length) {
+    try { renderDashboard(); renderHistorico(); } catch(e) { console.error('Erro ao renderizar:', e); }
+    atualizarUltimoLocal();
+  }
   document.getElementById('topbar-sub').textContent = 'Hoje, ' + new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   await verificarPrimeiroAcesso();
   goTo('hoje');
 }
-init();
+// O app só é montado depois que o login e a assinatura forem confirmados
+window._iniciarApp = function() {
+  if (window._appIniciado) return;
+  window._appIniciado = true;
+  init().catch(e => console.error('Erro ao iniciar:', e));
+};
+if (window._uidAtual) window._iniciarApp();
 </script>
 
 <script>
@@ -2349,22 +2450,34 @@ function fazerLogin() {
   errEl.textContent = "";
   errEl.style.color = "#ff5e7a";
   if (!email || !senha) { errEl.textContent = "Preencha email e senha."; return; }
+  if (!window._signIn) { errEl.textContent = "Carregando... aguarde um instante e tente de novo."; return; }
+  const btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Entrando...'; }
   window._signIn(window._auth, email, senha)
     .catch(err => {
-      if (["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(err.code)) {
-        errEl.textContent = "Email ou senha incorretos.";
-      } else {
-        errEl.textContent = "Erro ao entrar. Tente novamente.";
-      }
-    });
+      const M = {
+        "auth/invalid-credential": "Email ou senha incorretos. Primeiro acesso? Toque em \"Esqueci minha senha\" para criar sua senha.",
+        "auth/wrong-password": "Email ou senha incorretos.",
+        "auth/user-not-found": "Email não cadastrado. Use o mesmo e-mail da compra na Hotmart.",
+        "auth/invalid-email": "Email inválido. Confira se digitou certo.",
+        "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos ou toque em \"Esqueci minha senha\".",
+        "auth/network-request-failed": "Sem conexão com a internet. Verifique e tente novamente.",
+        "auth/user-disabled": "Este acesso foi desativado. Fale com targetproco@gmail.com"
+      };
+      errEl.textContent = M[err.code] || "Erro ao entrar. Tente novamente.";
+    })
+    .finally(() => { if (btn) { btn.disabled = false; btn.textContent = 'Entrar no StatPro'; } });
 }
 
 function recuperarSenha() {
   const email = document.getElementById("login-email").value.trim();
   if (!email) { document.getElementById("login-error").textContent = "Digite seu email acima primeiro."; return; }
+  const errEl = document.getElementById("login-error");
+  errEl.style.color = "#ff5e7a";
+  if (!window._sendPasswordResetEmail) { errEl.textContent = "Carregando... aguarde um instante e tente de novo."; return; }
   window._sendPasswordResetEmail(window._auth, email)
-    .then(() => { const e=document.getElementById("login-error"); e.style.color="#00d4a0"; e.textContent="Email de recuperação enviado!"; })
-    .catch(() => { document.getElementById("login-error").textContent = "Email não encontrado."; });
+    .then(() => { errEl.style.color="#00d4a0"; errEl.textContent="Pronto! Se este e-mail tiver assinatura, você vai receber um link para criar/trocar a senha. Veja também o spam."; })
+    .catch(err => { errEl.textContent = err.code === "auth/invalid-email" ? "Email inválido. Confira se digitou certo." : err.code === "auth/network-request-failed" ? "Sem conexão com a internet." : "Não foi possível enviar agora. Tente de novo em instantes."; });
 }
 </script>
 
