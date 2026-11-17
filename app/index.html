@@ -116,6 +116,17 @@
         document.getElementById('app-content').style.display = 'flex';
         const badge = document.getElementById('user-email-badge');
         if (badge) badge.textContent = user.email;
+        // Painel do Dono: o menu só aparece para as contas do dono (o servidor confere de novo)
+        const DONOS_UIDS = ['wBFxVijW9AOEDTqCOAdWvAr5clF2','WnYafxA7FYYC5p8WL4Zza7YLuI22','oeOhUxpr6BcjrfXBuTIHifgfLD13'];
+        if (DONOS_UIDS.includes(user.uid)) document.querySelectorAll('.nav-dono').forEach(e => e.style.display = '');
+        // Uso do app: conta 1 vez por dia por aparelho (anônimo), sem contar o dono
+        try {
+          const hoje = new Date().toISOString().slice(0,10);
+          if (!DONOS_UIDS.includes(user.uid) && localStorage.getItem('tp_app') !== hoje) {
+            localStorage.setItem('tp_app', hoje);
+            fetch('/.netlify/functions/contador', { method:'POST', body: JSON.stringify({e:'app_unico'}), keepalive:true }).catch(()=>{});
+          }
+        } catch(e) {}
         if (typeof window._iniciarApp === 'function') window._iniciarApp();
       }
     } else {
@@ -583,6 +594,8 @@ tr:hover td{background:rgba(255,255,255,0.05);}
 
       <div class="nav-section">Financeiro</div>
       <div class="nav-item" onclick="goTo('gestao')"><span class="nav-icon">💰</span> Gestão</div>
+      <div class="nav-section nav-dono" style="display:none">Administração</div>
+      <div class="nav-item nav-dono" style="display:none" onclick="goTo('painel')"><span class="nav-icon">📈</span> Painel do Dono</div>
 
       <div style="margin-top:20px;padding:0 2px;">
         <button class="btn btn-danger btn-sm btn-full" onclick="confirmarLimpar()">🗑 Limpar sistema</button>
@@ -899,6 +912,15 @@ tr:hover td{background:rgba(255,255,255,0.05);}
     </section>
 
     <!-- ============ GESTÃO ============ -->
+    <section class="page" id="page-painel">
+      <div class="page-header">
+        <div class="page-title">📈 Painel do Dono</div>
+        <div class="page-sub">Crescimento da TargetPro: visitas, cadastros, testes e assinaturas</div>
+      </div>
+      <div style="margin-bottom:14px;"><button class="btn btn-sm" onclick="carregarPainel()">⟳ Atualizar</button> <span id="painel-hora" style="font-size:12px;color:var(--muted);margin-left:8px;"></span></div>
+      <div id="painel-wrap"><div class="card">Carregando...</div></div>
+    </section>
+
     <section class="page" id="page-gestao">
       <div class="page-header">
         <div class="page-title">💰 Gestão Financeira</div>
@@ -1094,14 +1116,15 @@ const PAGE_TITLES = {
   previsao: ['🔮 Previsão IA', 'Análise preditiva para o próximo sorteio'],
   frequencia: ['🌡 Frequência', 'Temperatura e padrões dos 25 números'],
   historico: ['📋 Histórico', 'Base completa de concursos'],
-  gestao: ['💰 Gestão', 'Controle financeiro das apostas']
+  gestao: ['💰 Gestão', 'Controle financeiro das apostas'],
+  painel: ['📈 Painel do Dono', 'Visão de crescimento — só você vê']
 };
 
 function goTo(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const map = {hoje:0, dashboard:1, previsao:2, frequencia:3, historico:4, gestao:5};
+  const map = {hoje:0, dashboard:1, previsao:2, frequencia:3, historico:4, gestao:5, painel:6};
   const items = document.querySelectorAll('.nav-item');
   if (items[map[id]]) items[map[id]].classList.add('active');
   const [title, sub] = PAGE_TITLES[id] || [id, ''];
@@ -1122,6 +1145,57 @@ function goTo(id) {
   if (id === 'dashboard') renderDashboard();
   if (id === 'gestao') renderGestao();
   if (id === 'previsao') renderPrevisao();
+  if (id === 'painel') carregarPainel();
+}
+
+// ===== PAINEL DO DONO (dados vêm do servidor, que confere o login) =====
+async function carregarPainel() {
+  const wrap = document.getElementById('painel-wrap');
+  wrap.innerHTML = '<div class="card">Carregando...</div>';
+  try {
+    const u = window._auth && window._auth.currentUser;
+    if (!u) throw new Error('Faça login de novo.');
+    const tk = await u.getIdToken();
+    const r = await fetch('/.netlify/functions/painel', { headers: { Authorization: 'Bearer ' + tk } });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.erro || ('Erro ' + r.status));
+    renderPainel(d);
+  } catch (e) {
+    wrap.innerHTML = '<div class="card" style="color:#ff8a9a;">Não foi possível carregar: ' + (e.message || e) + '</div>';
+  }
+}
+function renderPainel(d) {
+  const agora = new Date();
+  const fmt = iso => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
+  const clientes = d.usuarios.filter(u => !u.dono);
+  const ativo = u => u.status === 'ativo' && (!u.expira || new Date(u.expira) > agora);
+  const testes = clientes.filter(u => ativo(u) && u.emTeste);
+  const pagantes = clientes.filter(u => ativo(u) && !u.emTeste);
+  const semLogin = clientes.filter(u => !u.ultimoLogin || u.ultimoLogin === u.criado);
+  const vence7 = testes.filter(u => u.expira && (new Date(u.expira) - agora) < 3*86400000);
+  const cortados = clientes.filter(u => ['reembolsado','cancelado'].includes(u.status));
+  const m = d.metricas || [];
+  const hoje = m[0] && m[0].data === new Date(Date.now()-3*3600*1000).toISOString().slice(0,10) ? m[0] : {};
+  const soma = k => m.slice(0,7).reduce((t,x)=>t+(x[k]||0),0);
+  const cta = x => ['cta_mensal','cta_trimestral','cta_anual','cta_fundador'].reduce((t,k)=>t+(x[k]||0),0);
+  const card = (n, t, sub) => `<div class="card" style="text-align:center;padding:16px;"><div style="font-size:30px;font-weight:800;font-family:Poppins,sans-serif;">${n}</div><div style="font-size:13px;font-weight:600;">${t}</div>${sub?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${sub}</div>`:''}</div>`;
+  const porPlano = p => pagantes.filter(u=>u.plano===p).length;
+  let h = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;">
+    ${card(hoje.site_unico||0,'Visitantes hoje', (hoje.site_visita||0)+' visitas')}
+    ${card(soma('site_unico'),'Visitantes 7 dias', soma('site_visita')+' visitas')}
+    ${card(cta(hoje),'Cliques em assinar hoje', cta({cta_mensal:soma('cta_mensal'),cta_trimestral:soma('cta_trimestral'),cta_anual:soma('cta_anual'),cta_fundador:soma('cta_fundador')})+' em 7 dias')}
+    ${card(clientes.length,'Clientes cadastrados', semLogin.length+' ainda não entraram')}
+    ${card(testes.length,'Em teste grátis', vence7.length+' vencem em até 3 dias')}
+    ${card(pagantes.length,'Assinantes pagantes', `M ${porPlano('mensal')} · T ${porPlano('trimestral')} · A ${porPlano('anual')} · F ${porPlano('fundador')}`)}
+    ${card(cortados.length,'Reembolsos / cancelados','')}
+    ${card(hoje.app_unico||0,'Usaram o app hoje', soma('app_unico')+' em 7 dias')}
+  </div>`;
+  h += `<div class="card" style="margin-bottom:16px;overflow-x:auto;"><div style="font-weight:700;margin-bottom:10px;">Clientes</div>` + (clientes.length ? `<table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="text-align:left;color:var(--muted);"><th>E-mail</th><th>Plano</th><th>Situação</th><th>Válido até</th><th>Cadastro</th><th>Último acesso</th></tr>` +
+    clientes.map(u => `<tr style="border-top:1px solid rgba(255,255,255,.12);"><td style="padding:6px 4px;">${u.email||'—'}</td><td>${u.plano||'—'}</td><td>${u.status==='ativo'?(u.emTeste?'🟡 teste':'🟢 ativo'):(u.status||'—')}</td><td>${fmt(u.expira)}</td><td>${fmt(u.criado)}</td><td>${u.ultimoLogin && u.ultimoLogin!==u.criado ? fmt(u.ultimoLogin) : 'nunca entrou'}</td></tr>`).join('') + `</table>` : `<div style="color:var(--muted);font-size:13px;">Nenhum cliente ainda. Quando entrar a primeira compra, ela aparece aqui na hora.</div>`) + `</div>`;
+  h += `<div class="card" style="overflow-x:auto;"><div style="font-weight:700;margin-bottom:10px;">Últimos dias</div>` + (m.length ? `<table style="width:100%;border-collapse:collapse;font-size:13px;"><tr style="text-align:left;color:var(--muted);"><th>Dia</th><th>Visitantes</th><th>Visitas</th><th>Cliques assinar</th><th>Uso do app</th></tr>` +
+    m.map(x => `<tr style="border-top:1px solid rgba(255,255,255,.12);"><td style="padding:6px 4px;">${x.data.split('-').reverse().join('/')}</td><td>${x.site_unico||0}</td><td>${x.site_visita||0}</td><td>${cta(x)}</td><td>${x.app_unico||0}</td></tr>`).join('') + `</table>` : `<div style="color:var(--muted);font-size:13px;">O contador de visitas começou agora. Os números aparecem a partir das próximas visitas.</div>`) + `</div>`;
+  document.getElementById('painel-wrap').innerHTML = h;
+  document.getElementById('painel-hora').textContent = 'Atualizado às ' + new Date(d.geradoEm).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 }
 
 function toggleSidebar() {
