@@ -630,6 +630,27 @@ var LINKS={
   fundador:'https://pay.hotmart.com/Y106105565G?off=tcpkpqw6'
 };
 ['mensal','trimestral','anual','fundador'].forEach(function(k){document.getElementById('btn-'+k).href=LINKS[k];});
+
+// Contador anônimo de visitas e cliques (sem cookie, sem dado pessoal)
+(function(){
+  function conta(e){
+    try{
+      var d=JSON.stringify({e:e}), u='/.netlify/functions/contador';
+      if(navigator.sendBeacon){navigator.sendBeacon(u,new Blob([d],{type:'application/json'}));}
+      else{fetch(u,{method:'POST',body:d,keepalive:true});}
+    }catch(x){}
+  }
+  conta('site_visita');
+  try{
+    var hoje=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('tp_visita')!==hoje){localStorage.setItem('tp_visita',hoje);conta('site_unico');}
+  }catch(x){}
+  ['mensal','trimestral','anual','fundador'].forEach(function(k){
+    document.getElementById('btn-'+k).addEventListener('click',function(){conta('cta_'+k);});
+  });
+  var topo=document.querySelector('a.btn-primary[href="#planos"]');
+  if(topo){topo.addEventListener('click',function(){conta('cta_topo');});}
+})();
 </script>
 </body>
 </html>
