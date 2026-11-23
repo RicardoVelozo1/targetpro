@@ -29,7 +29,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBZ5XqbQDiLSyH6tYaddeFMN5FjUNcdg7E",
@@ -50,6 +50,11 @@
   window._signOut = signOut;
   window._onAuthStateChanged = onAuthStateChanged;
   window._sendPasswordResetEmail = sendPasswordResetEmail;
+  // Gestão na nuvem: as apostas de cada conta ficam em gestao/{uid} (só o próprio usuário lê e grava)
+  window._gestaoNuvem = {
+    async ler(uid) { const s = await getDoc(doc(db, "gestao", uid)); return s.exists() ? (s.data().apostas || []) : null; },
+    async salvar(uid, lista) { await setDoc(doc(db, "gestao", uid), { apostas: lista, atualizado: new Date().toISOString() }); },
+  };
 
   async function verificarAssinatura(user) {
     try {
@@ -979,7 +984,11 @@ tr:hover td{background:rgba(255,255,255,0.05);}
 
       <div id="gest-tab-historico" style="display:none;margin-top:18px;">
         <div class="card">
-          <div class="card-title">Todas as apostas</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="card-title" style="margin:0;">Todas as apostas</div>
+            <label class="btn btn-sm" style="cursor:pointer;" title="Escolha o arquivo lotofacil_dados.json do programa instalado">⬆ Importar histórico<input type="file" accept=".json,application/json" style="display:none;" onchange="importarHistoricoArquivo(this)"></label>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin:6px 0 10px;">Suas apostas ficam salvas na sua conta e aparecem em qualquer aparelho em que você entrar.</div>
           <div class="table-wrap">
             <table class="tabela-apostas">
               <thead>
@@ -2473,6 +2482,7 @@ async function carregarApostas() {
       }
     } else {
       apostas = JSON.parse(localStorage.getItem(chaveApostas()) || '[]');
+      await sincronizarGestaoNuvem();
       const res = localStorage.getItem('lf_resultados');
       if (res) {
         const arr = JSON.parse(res);
@@ -2497,9 +2507,68 @@ async function salvarApostas() {
     } else {
       localStorage.setItem(chaveApostas(), JSON.stringify(apostas));
       localStorage.setItem('lf_resultados', JSON.stringify(RESULTADOS));
+      const uid = window._uidAtual;
+      if (uid && window._gestaoNuvem) {
+        window._gestaoNuvem.salvar(uid, apostas)
+          .then(() => { try { localStorage.setItem('lf_apostas_sync_' + uid, '1'); } catch(e) {} })
+          .catch(e => console.error('Gestão na nuvem (salvar):', e));
+      }
     }
   } catch(e) {
     console.error('Erro ao salvar:', e);
+  }
+}
+
+// Junta as apostas da nuvem com as deste aparelho.
+// 1ª vez neste aparelho: soma as duas listas (sem repetir). Depois disso, a nuvem manda (assim o que foi apagado em outro aparelho não volta).
+function chaveAposta(a) { return a.concurso + '|' + [...(a.numeros||[])].map(Number).sort((x,y)=>x-y).join(','); }
+function juntarApostas(base, extra) {
+  const vistos = new Set(base.map(a => String(a.id)));
+  const jogos = new Set(base.map(chaveAposta));
+  const out = [...base];
+  extra.forEach(a => { if (!vistos.has(String(a.id)) && !jogos.has(chaveAposta(a))) { out.push(a); vistos.add(String(a.id)); jogos.add(chaveAposta(a)); } });
+  return out;
+}
+async function sincronizarGestaoNuvem() {
+  const uid = window._uidAtual;
+  if (!uid || !window._gestaoNuvem) return;
+  try {
+    const nuvem = await window._gestaoNuvem.ler(uid);
+    const jaSincronizou = localStorage.getItem('lf_apostas_sync_' + uid) === '1';
+    let final;
+    if (nuvem === null) final = apostas;
+    else if (jaSincronizou) final = nuvem;
+    else final = juntarApostas(nuvem, apostas);
+    final.sort((a,b) => (b.concurso||0) - (a.concurso||0));
+    apostas = final;
+    localStorage.setItem(chaveApostas(), JSON.stringify(apostas));
+    if (nuvem === null || final.length !== nuvem.length) await window._gestaoNuvem.salvar(uid, apostas);
+    localStorage.setItem('lf_apostas_sync_' + uid, '1');
+  } catch(e) {
+    console.error('Gestão na nuvem (ler):', e);
+  }
+}
+
+// Importa o histórico do programa instalado (lotofacil_dados.json) ou de um backup
+async function importarHistoricoArquivo(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  try {
+    const dados = JSON.parse(await f.text());
+    const lista = Array.isArray(dados) ? dados : (dados.apostas || []);
+    const validas = lista.filter(a => a && a.concurso && Array.isArray(a.numeros) && a.numeros.length >= 15)
+      .map(a => ({ id: a.id || (Date.now() + Math.random()), concurso: Number(a.concurso), data: a.data || '', valor: parseFloat(a.valor) || 0, numeros: a.numeros.map(Number), premio: parseFloat(a.premio) || 0, estrategia: a.estrategia || '—', ...(a.acertos != null ? { acertos: a.acertos } : {}) }));
+    if (!validas.length) { notify('Nenhuma aposta encontrada nesse arquivo.', 'error'); return; }
+    const antes = apostas.length;
+    apostas = juntarApostas(apostas, validas).sort((a,b) => (b.concurso||0) - (a.concurso||0));
+    const novas = apostas.length - antes;
+    await salvarApostas();
+    renderGestao(); updateDashStats();
+    notify(novas ? `${novas} aposta(s) importada(s) para a sua conta.` : 'Essas apostas já estavam na sua conta.');
+  } catch(e) {
+    console.error(e);
+    notify('Não consegui ler esse arquivo. Escolha o lotofacil_dados.json do programa.', 'error');
   }
 }
 
